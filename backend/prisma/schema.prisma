@@ -1,0 +1,357 @@
+// This is your Prisma schema file for DevFlow
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============= USER & AUTH =============
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  avatar        String?
+  githubId      Int       @unique
+  githubLogin   String    @unique
+  accessToken   String    @db.Text // Encrypted
+  refreshToken  String?   @db.Text // Encrypted
+  tokenExpiry   DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  repositories  UserRepository[]
+  issues        Issue[]
+  comments      Comment[]
+  teams         TeamMember[]
+  notes         Note[]
+  reminders     Reminder[]
+  categories    Category[]
+  savedViews    SavedView[]
+  notifications Notification[]
+  timeEntries   TimeEntry[]
+  
+  @@map("users")
+}
+
+// ============= REPOSITORY =============
+
+model Repository {
+  id              String   @id @default(cuid())
+  githubId        Int      @unique
+  name            String
+  fullName        String   @unique // "owner/repo"
+  description     String?  @db.Text
+  url             String
+  owner           String
+  isPrivate       Boolean  @default(false)
+  language        String?
+  stars           Int      @default(0)
+  forks           Int      @default(0)
+  openIssuesCount Int      @default(0)
+  
+  webhookId       String?  // GitHub webhook ID
+  webhookEnabled  Boolean  @default(false)
+  
+  lastSyncedAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  users           UserRepository[]
+  issues          Issue[]
+  labels          Label[]
+  milestones      Milestone[]
+  
+  @@map("repositories")
+}
+
+model UserRepository {
+  id           String   @id @default(cuid())
+  userId       String
+  repositoryId String
+  role         String   @default("member") // admin, member, viewer
+  group        String?  // For custom grouping
+  
+  createdAt    DateTime @default(now())
+  
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, repositoryId])
+  @@map("user_repositories")
+}
+
+// ============= ISSUES =============
+
+model Issue {
+  id              String    @id @default(cuid())
+  githubId        Int       @unique
+  number          Int       // Issue number in repo
+  title           String
+  body            String?   @db.Text
+  state           String    // "open", "closed"
+  stateReason     String?   // "completed", "not_planned", "reopened"
+  
+  repositoryId    String
+  creatorId       String?
+  
+  // GitHub metadata
+  githubCreatedAt DateTime
+  githubUpdatedAt DateTime
+  closedAt        DateTime?
+  
+  // Custom fields
+  priority        String?   // P0, P1, P2, P3
+  customStatus    String?   // For custom workflows
+  estimatedTime   Int?      // in minutes
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  repository      Repository       @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  creator         User?            @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  labels          IssueLabel[]
+  assignees       IssueAssignee[]
+  comments        Comment[]
+  categories      IssueCategory[]
+  notes           Note[]
+  reminders       Reminder[]
+  timeEntries     TimeEntry[]
+  milestone       Milestone?       @relation(fields: [milestoneId], references: [id])
+  milestoneId     String?
+  
+  @@unique([repositoryId, number])
+  @@index([state])
+  @@index([priority])
+  @@index([repositoryId])
+  @@map("issues")
+}
+
+model Label {
+  id           String   @id @default(cuid())
+  githubId     Int?     @unique
+  name         String
+  color        String   // Hex color
+  description  String?
+  repositoryId String
+  
+  createdAt    DateTime @default(now())
+  
+  repository   Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  issues       IssueLabel[]
+  
+  @@unique([repositoryId, name])
+  @@map("labels")
+}
+
+model IssueLabel {
+  id       String @id @default(cuid())
+  issueId  String
+  labelId  String
+  
+  issue    Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  label    Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  
+  @@unique([issueId, labelId])
+  @@map("issue_labels")
+}
+
+model IssueAssignee {
+  id       String @id @default(cuid())
+  issueId  String
+  userId   String
+  
+  issue    Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  
+  @@unique([issueId, userId])
+  @@map("issue_assignees")
+}
+
+model Milestone {
+  id              String    @id @default(cuid())
+  githubId        Int?      @unique
+  title           String
+  description     String?   @db.Text
+  state           String    // "open", "closed"
+  dueOn           DateTime?
+  repositoryId    String
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  repository      Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  issues          Issue[]
+  
+  @@map("milestones")
+}
+
+// ============= COMMENTS =============
+
+model Comment {
+  id              String   @id @default(cuid())
+  githubId        Int?     @unique
+  body            String   @db.Text
+  issueId         String
+  userId          String?
+  
+  githubCreatedAt DateTime?
+  githubUpdatedAt DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  issue           Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([issueId])
+  @@map("comments")
+}
+
+// ============= CUSTOM FEATURES =============
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  color       String   // Hex color
+  userId      String
+  
+  createdAt   DateTime @default(now())
+  
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issues      IssueCategory[]
+  
+  @@unique([userId, name])
+  @@map("categories")
+}
+
+model IssueCategory {
+  id         String   @id @default(cuid())
+  issueId    String
+  categoryId String
+  
+  issue      Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  @@unique([issueId, categoryId])
+  @@map("issue_categories")
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  issueId   String
+  userId    String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notes")
+}
+
+model Reminder {
+  id          String   @id @default(cuid())
+  issueId     String
+  userId      String
+  remindAt    DateTime
+  message     String?
+  isCompleted Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([remindAt, isCompleted])
+  @@map("reminders")
+}
+
+model SavedView {
+  id          String   @id @default(cuid())
+  name        String
+  filters     Json     // Store filter configuration
+  userId      String
+  isDefault   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("saved_views")
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // "mention", "assigned", "status_change", etc.
+  title       String
+  message     String   @db.Text
+  link        String?
+  isRead      Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model TimeEntry {
+  id          String   @id @default(cuid())
+  issueId     String
+  userId      String
+  duration    Int      // in minutes
+  description String?
+  startedAt   DateTime
+  endedAt     DateTime?
+  
+  createdAt   DateTime @default(now())
+  
+  issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("time_entries")
+}
+
+// ============= TEAMS (Optional) =============
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  members     TeamMember[]
+  
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      String   @default("member") // owner, admin, member
+  
+  createdAt DateTime @default(now())
+  
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
