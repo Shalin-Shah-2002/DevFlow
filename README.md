@@ -325,21 +325,54 @@ Track the implementation progress of all API endpoints across 10 categories.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here's how you can help:
+We welcome contributions from the community! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
+
+### 🚀 Quick Start for Contributors
+
+1. **Read the Contributing Guide** - [CONTRIBUTING.md](CONTRIBUTING.md)
+2. **Check the Code of Conduct** - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+3. **Look for Good First Issues** - Tagged with `good first issue` label
+
+### 📝 How to Contribute
 
 1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/AmazingFeature`)
-3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** to the branch (`git push origin feature/AmazingFeature`)
-5. **Open** a Pull Request
+2. **Clone** your fork: `git clone https://github.com/YOUR_USERNAME/devflow.git`
+3. **Create** a feature branch: `git checkout -b feature/AmazingFeature`
+4. **Make** your changes
+5. **Test** thoroughly
+6. **Commit** with clear messages: `git commit -m 'feat: add amazing feature'`
+7. **Push** to your fork: `git push origin feature/AmazingFeature`
+8. **Open** a Pull Request
 
-### Development Guidelines
+### 💬 Get in Touch
 
-- ✅ Follow TypeScript best practices
-- ✅ Write clean, documented code
-- ✅ Test your changes thoroughly
-- ✅ Update documentation as needed
-- ✅ Follow existing code style
+**Want to contribute or discuss ideas?**
+
+- 📧 **Email**: 2002shalin@gmail.com
+- 🐛 **Report Issues**: [GitHub Issues](https://github.com/yourusername/devflow/issues)
+- 💡 **Feature Requests**: [GitHub Issues](https://github.com/yourusername/devflow/issues/new?template=feature_request.md)
+- 🐞 **Bug Reports**: [GitHub Issues](https://github.com/yourusername/devflow/issues/new?template=bug_report.md)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/yourusername/devflow/discussions)
+
+### 🏷️ Ways to Contribute
+
+- **Report Bugs** - Found something broken? Let us know!
+- **Suggest Features** - Have ideas? We'd love to hear them!
+- **Write Code** - Pick up issues labeled `help wanted` or `good first issue`
+- **Improve Docs** - Help make our documentation better
+- **Review PRs** - Help review and test pull requests
+- **Spread the Word** - Star ⭐ the repo and share with others
+
+### ✅ Development Guidelines
+
+- Follow TypeScript best practices
+- Write clean, documented code
+- Add tests for new features
+- Update documentation as needed
+- Follow our commit message conventions
+- Ensure all tests pass before submitting PR
+
+**For detailed guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md)**
 
 ---
 
@@ -367,9 +400,10 @@ This project is licensed under the ISC License.
 
 For questions, issues, or suggestions:
 
-- 📧 Email: support@devflow.com
+- 📧 Email: 2002shalin@gmail.com
 - 🐛 Issues: [GitHub Issues](https://github.com/yourusername/devflow/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/devflow/discussions)
+- 📖 Documentation: Check our [docs](./CONTRIBUTING.md) and [guides](./SETUP_GUIDE.md)
 
 ---
 

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/yourusername/devflow/discussions
+    about: Ask questions, share ideas, or discuss the project
+  - name: 📧 Email Support
+    url: mailto:2002shalin@gmail.com
+    about: For private matters or security concerns
+  - name: 📖 Documentation
+    url: https://github.com/yourusername/devflow#readme
+    about: Check our comprehensive documentation
