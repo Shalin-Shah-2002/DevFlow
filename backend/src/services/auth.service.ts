@@ -1,25 +1,13 @@
 import axios from 'axios';
 import * as jwt from 'jsonwebtoken';
 import prisma from '../config/prisma';
-
-interface GitHubUser {
-  id: number;
-  login: string;
-  email: string;
-  name: string;
-  avatar_url: string;
-  bio?: string;
-  location?: string;
-  company?: string;
-  blog?: string;
-  html_url: string;
-}
-
-interface GitHubTokenResponse {
-  access_token: string;
-  token_type: string;
-  scope: string;
-}
+import { 
+  GitHubUser, 
+  GitHubTokenResponse, 
+  JWTPayload,
+  UserProfile,
+  toUserProfile 
+} from '../models';
 
 export class AuthService {
   /**
@@ -188,23 +176,17 @@ export class AuthService {
   /**
    * Get user by ID
    */
-  static async getUserById(userId: string) {
+  static async getUserById(userId: string): Promise<UserProfile | null> {
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          avatar: true,
-          githubLogin: true,
-          githubId: true,
-          createdAt: true,
-          updatedAt: true,
-        },
       });
 
-      return user;
+      if (!user) {
+        return null;
+      }
+
+      return toUserProfile(user);
     } catch (error) {
       console.error('Error getting user by ID:', error);
       throw new Error('Failed to fetch user');

@@ -40,6 +40,7 @@ exports.AuthService = void 0;
 const axios_1 = __importDefault(require("axios"));
 const jwt = __importStar(require("jsonwebtoken"));
 const prisma_1 = __importDefault(require("../config/prisma"));
+const models_1 = require("../models");
 class AuthService {
     /**
      * Generate GitHub OAuth URL
@@ -186,18 +187,11 @@ class AuthService {
         try {
             const user = await prisma_1.default.user.findUnique({
                 where: { id: userId },
-                select: {
-                    id: true,
-                    email: true,
-                    name: true,
-                    avatar: true,
-                    githubLogin: true,
-                    githubId: true,
-                    createdAt: true,
-                    updatedAt: true,
-                },
             });
-            return user;
+            if (!user) {
+                return null;
+            }
+            return (0, models_1.toUserProfile)(user);
         }
         catch (error) {
             console.error('Error getting user by ID:', error);

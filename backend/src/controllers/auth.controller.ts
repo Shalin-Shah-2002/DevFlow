@@ -1,5 +1,13 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
+import { 
+  GitHubAuthResponse, 
+  CurrentUserResponse, 
+  TokenRefreshResponse, 
+  LogoutResponse, 
+  ErrorResponse,
+  OAuthCallbackQuery 
+} from '../models';
 
 /**
  * @swagger
@@ -55,17 +63,20 @@ export class AuthController {
     try {
       const redirectUrl = AuthService.getGitHubAuthUrl();
 
-      res.json({
+      const response: GitHubAuthResponse = {
         success: true,
         redirectUrl,
-      });
+      };
+
+      res.json(response);
     } catch (error) {
       console.error('Error initiating GitHub auth:', error);
-      res.status(500).json({
+      const errorResponse: ErrorResponse = {
         success: false,
         message: 'Failed to initiate GitHub authentication',
         error: error instanceof Error ? error.message : 'Unknown error',
-      });
+      };
+      res.status(500).json(errorResponse);
     }
   }
 
@@ -102,7 +113,7 @@ export class AuthController {
    */
   static async githubCallback(req: Request, res: Response): Promise<void> {
     try {
-      const { code } = req.query;
+      const { code } = req.query as OAuthCallbackQuery;
 
       if (!code || typeof code !== 'string') {
         res.status(400).json({
@@ -177,34 +188,39 @@ export class AuthController {
       const user = req.user as { id: string; email: string; githubId: number } | undefined;
       
       if (!user) {
-        res.status(401).json({
+        const errorResponse: ErrorResponse = {
           success: false,
           message: 'User not authenticated',
-        });
+        };
+        res.status(401).json(errorResponse);
         return;
       }
 
       const userProfile = await AuthService.getUserById(user.id);
 
       if (!userProfile) {
-        res.status(404).json({
+        const errorResponse: ErrorResponse = {
           success: false,
           message: 'User not found',
-        });
+        };
+        res.status(404).json(errorResponse);
         return;
       }
 
-      res.json({
+      const response: CurrentUserResponse = {
         success: true,
         user: userProfile,
-      });
+      };
+
+      res.json(response);
     } catch (error) {
       console.error('Error getting current user:', error);
-      res.status(500).json({
+      const errorResponse: ErrorResponse = {
         success: false,
         message: 'Failed to fetch user profile',
         error: error instanceof Error ? error.message : 'Unknown error',
-      });
+      };
+      res.status(500).json(errorResponse);
     }
   }
 
@@ -246,10 +262,11 @@ export class AuthController {
       const user = req.user as { id: string; email: string; githubId: number } | undefined;
       
       if (!user) {
-        res.status(401).json({
+        const errorResponse: ErrorResponse = {
           success: false,
           message: 'User not authenticated',
-        });
+        };
+        res.status(401).json(errorResponse);
         return;
       }
 
@@ -260,18 +277,21 @@ export class AuthController {
         user.githubId
       );
 
-      res.json({
+      const response: TokenRefreshResponse = {
         success: true,
         token: newToken,
         expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-      });
+      };
+
+      res.json(response);
     } catch (error) {
       console.error('Error refreshing token:', error);
-      res.status(500).json({
+      const errorResponse: ErrorResponse = {
         success: false,
         message: 'Failed to refresh token',
         error: error instanceof Error ? error.message : 'Unknown error',
-      });
+      };
+      res.status(500).json(errorResponse);
     }
   }
 
@@ -310,17 +330,20 @@ export class AuthController {
       // In a stateless JWT system, logout is handled client-side by deleting the token
       // If you want to implement token blacklisting, you can add that logic here
       
-      res.json({
+      const response: LogoutResponse = {
         success: true,
         message: 'Logged out successfully. Please delete your token on the client side.',
-      });
+      };
+
+      res.json(response);
     } catch (error) {
       console.error('Error during logout:', error);
-      res.status(500).json({
+      const errorResponse: ErrorResponse = {
         success: false,
         message: 'Failed to logout',
         error: error instanceof Error ? error.message : 'Unknown error',
-      });
+      };
+      res.status(500).json(errorResponse);
     }
   }
 }

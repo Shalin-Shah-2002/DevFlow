@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma';
+import { JWTPayload, AuthUser } from '../models';
 
 /**
  * Middleware to verify JWT token and authenticate user
@@ -43,11 +44,7 @@ export const authMiddleware = async (
       return;
     }
 
-    const decoded = jwt.verify(token, jwtSecret) as {
-      id: string;
-      email: string;
-      githubId: number;
-    };
+    const decoded = jwt.verify(token, jwtSecret) as JWTPayload;
 
     // Check if user exists in database
     const user = await prisma.user.findUnique({
@@ -68,7 +65,7 @@ export const authMiddleware = async (
     }
 
     // Attach user to request
-    req.user = user;
+    req.user = user as AuthUser;
     next();
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
@@ -121,11 +118,7 @@ export const optionalAuthMiddleware = async (
       return;
     }
 
-    const decoded = jwt.verify(token, jwtSecret) as {
-      id: string;
-      email: string;
-      githubId: number;
-    };
+    const decoded = jwt.verify(token, jwtSecret) as JWTPayload;
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
@@ -137,7 +130,7 @@ export const optionalAuthMiddleware = async (
     });
 
     if (user) {
-      req.user = user;
+      req.user = user as AuthUser;
     }
 
     next();

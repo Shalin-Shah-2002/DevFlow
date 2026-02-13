@@ -1,17 +1,11 @@
+import { AuthUser } from '../models';
+
 declare namespace Express {
   export interface Request {
-    user?: {
-      id: string;
-      email: string;
-      githubId: number;
-    };
+    user?: AuthUser;
   }
   
-  export interface User {
-    id: string;
-    email: string;
-    githubId: number;
-  }
+  export interface User extends AuthUser {}
 }
 
 export {};
