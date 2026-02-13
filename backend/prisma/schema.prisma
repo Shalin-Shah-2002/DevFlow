@@ -23,6 +23,13 @@ model User {
   refreshToken  String?   @db.Text // Encrypted
   tokenExpiry   DateTime?
   
+  // Additional GitHub profile fields
+  bio           String?   @db.Text
+  location      String?
+  company       String?
+  website       String?
+  githubUrl     String?
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   

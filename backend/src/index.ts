@@ -3,6 +3,10 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec, swaggerUiOptions } from './config/swagger';
+import authRoutes from './routes/auth.routes';
+import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
 // Load environment variables
 dotenv.config();
@@ -12,7 +16,18 @@ const app: Application = express();
 const PORT = process.env.PORT || 5000;
 
 // Security Middleware
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
+    },
+  })
+);
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -52,31 +67,29 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
-// TODO: Import and use routes
-// import authRoutes from './routes/auth.routes';
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+
+// Swagger JSON endpoint
+app.get('/api-docs.json', (req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+// API Routes
+app.use('/api/auth', authRoutes);
+
+// TODO: Import and use additional routes as they are implemented
 // import repoRoutes from './routes/repository.routes';
 // import issueRoutes from './routes/issue.routes';
-//
-// app.use('/api/auth', authRoutes);
 // app.use('/api/repositories', repoRoutes);
 // app.use('/api/issues', issueRoutes);
 
 // 404 Handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: `Route ${req.method} ${req.url} not found`,
-  });
-});
+app.use(notFoundHandler);
 
-// Error Handler
-app.use((err: any, req: Request, res: Response, next: any) => {
-  console.error('Error:', err);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-  });
-});
+// Error Handler (must be last)
+app.use(errorHandler);
 
 // Start Server
 app.listen(PORT, () => {
@@ -85,9 +98,14 @@ app.listen(PORT, () => {
 ║     🚀 DevFlow API Server Started    ║
 ╚═══════════════════════════════════════╝
   
-  🌐 Server: http://localhost:${PORT}
-  📝 Env: ${process.env.NODE_ENV || 'development'}
-  ⏰ Time: ${new Date().toLocaleString()}
+  🌐 Server:      http://localhost:${PORT}
+  📚 API Docs:    http://localhost:${PORT}/api-docs
+  📋 Swagger JSON: http://localhost:${PORT}/api-docs.json
+  🏥 Health:      http://localhost:${PORT}/api/health
+  📝 Environment: ${process.env.NODE_ENV || 'development'}
+  ⏰ Started at:  ${new Date().toLocaleString()}
+  
+  ✅ Authentication endpoints ready!
   
 `);
 });
