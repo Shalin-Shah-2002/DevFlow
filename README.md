@@ -171,13 +171,13 @@ Track the implementation progress of all API endpoints across 10 categories.
 - [x] POST `/api/auth/logout` - Logout user
 
 #### 📦 2. Repository APIs (7 endpoints)
-- [ ] GET `/api/repositories` - List all repositories
-- [ ] POST `/api/repositories` - Add repository
-- [ ] GET `/api/repositories/:id` - Get repository details
-- [ ] PUT `/api/repositories/:id` - Update repository
-- [ ] DELETE `/api/repositories/:id` - Remove repository
-- [ ] POST `/api/repositories/:id/sync` - Sync with GitHub
-- [ ] GET `/api/repositories/search` - Search GitHub repos
+- [x] GET `/api/repositories` - List all repositories
+- [x] POST `/api/repositories` - Add repository
+- [x] GET `/api/repositories/:id` - Get repository details
+- [x] PATCH `/api/repositories/:id` - Update repository
+- [x] DELETE `/api/repositories/:id` - Remove repository
+- [x] POST `/api/repositories/:id/sync` - Sync with GitHub
+- [x] POST `/api/repositories/:id/webhook` - Setup GitHub webhook
 
 #### 🎯 3. Issue APIs (12 endpoints)
 - [ ] GET `/api/issues` - List all issues (with filters)
@@ -260,7 +260,7 @@ Track the implementation progress of all API endpoints across 10 categories.
 | Category | Total | Completed | Percentage |
 |----------|-------|-----------|------------|
 | Authentication | 5 | 5 | 100% |
-| Repositories | 7 | 0 | 0% |
+| Repositories | 7 | 7 | 100% |
 | Issues | 12 | 0 | 0% |
 | Labels | 6 | 0 | 0% |
 | Comments | 6 | 0 | 0% |
@@ -269,7 +269,7 @@ Track the implementation progress of all API endpoints across 10 categories.
 | Analytics | 6 | 0 | 0% |
 | Notifications | 5 | 0 | 0% |
 | Additional | 12 | 0 | 0% |
-| **TOTAL** | **70** | **5** | **7%** |
+| **TOTAL** | **70** | **12** | **17%** |
 
 ---
 
@@ -295,11 +295,11 @@ Track the implementation progress of all API endpoints across 10 categories.
 - [x] Basic Express server
 
 ### 🔄 Phase 1: Core Backend (IN PROGRESS)
-- [ ] Authentication system
-- [ ] Repository management
+- [x] Authentication system
+- [x] Repository management
 - [ ] Issue CRUD operations
-- [ ] GitHub API integration
-- [ ] Basic middleware
+- [x] GitHub API integration
+- [x] Basic middleware
 
 ### 📅 Phase 2: Advanced Features (PLANNED)
 - [ ] Comments & discussions
