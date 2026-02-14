@@ -431,39 +431,6 @@ export class RepositoryService {
     const webhookUrl = `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/webhooks/github`;
 
     try {
-      // Check if webhook already exists
-      const existingHooks = await axios.get(
-        `https://api.github.com/repos/${owner}/${repo}/hooks`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            Accept: 'application/vnd.github.v3+json',
-          },
-        }
-      );
-
-      // Check if our webhook URL already exists
-      const existingHook = existingHooks.data.find(
-        (hook: any) => hook.config?.url === webhookUrl
-      );
-
-      if (existingHook) {
-        // Update repository with existing webhook ID
-        await prisma.repository.update({
-          where: { id: repositoryId },
-          data: {
-            webhookId: existingHook.id.toString(),
-            webhookEnabled: true,
-          },
-        });
-
-        return {
-          success: true,
-          message: 'Webhook already exists and has been linked',
-          webhookId: existingHook.id.toString(),
-        };
-      }
-
       const response = await axios.post(
         `https://api.github.com/repos/${owner}/${repo}/hooks`,
         {
@@ -505,7 +472,6 @@ export class RepositoryService {
       if (error.response) {
         const status = error.response.status;
         const message = error.response.data?.message || error.message;
-        const errors = error.response.data?.errors;
         
         if (status === 401) {
           throw new Error('GitHub authentication failed. Token may be invalid or expired.');
@@ -514,11 +480,7 @@ export class RepositoryService {
         } else if (status === 404) {
           throw new Error(`Repository ${owner}/${repo} not found on GitHub or you don't have access.`);
         } else if (status === 422) {
-          // Check if it's a localhost URL issue
-          if (errors && errors[0]?.message?.includes('localhost')) {
-            throw new Error('Webhook URL must be publicly accessible. Localhost URLs are not supported by GitHub. Use ngrok or deploy to a public server.');
-          }
-          throw new Error('Webhook validation failed. URL may already exist or is invalid.');
+          throw new Error('Webhook validation failed. URL may already have a webhook or is invalid.');
         } else {
           throw new Error(`GitHub API error: ${message}`);
         }
