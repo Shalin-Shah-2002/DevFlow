@@ -8,7 +8,7 @@ export interface User {
   email: string;
   name: string | null;
   avatar: string | null;
-  githubId: number;
+  githubId: bigint;
   githubLogin: string;
   accessToken: string;
   refreshToken: string | null;
@@ -103,7 +103,7 @@ export function toUserProfile(user: PrismaUser): UserProfile {
     name: user.name,
     avatar: user.avatar,
     githubLogin: user.githubLogin,
-    githubId: user.githubId,
+    githubId: Number(user.githubId),
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
@@ -115,5 +115,5 @@ export function toUserProfile(user: PrismaUser): UserProfile {
 export interface AuthUser {
   id: string;
   email: string;
-  githubId: number;
+  githubId: bigint;
 }

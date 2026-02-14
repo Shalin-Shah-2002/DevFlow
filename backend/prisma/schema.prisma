@@ -17,7 +17,7 @@ model User {
   email         String    @unique
   name          String?
   avatar        String?
-  githubId      Int       @unique
+  githubId      BigInt    @unique
   githubLogin   String    @unique
   accessToken   String    @db.Text // Encrypted
   refreshToken  String?   @db.Text // Encrypted
@@ -52,7 +52,7 @@ model User {
 
 model Repository {
   id              String   @id @default(cuid())
-  githubId        Int      @unique
+  githubId        BigInt   @unique
   name            String
   fullName        String   @unique // "owner/repo"
   description     String?  @db.Text
@@ -100,7 +100,7 @@ model UserRepository {
 
 model Issue {
   id              String    @id @default(cuid())
-  githubId        Int       @unique
+  githubId        BigInt    @unique
   number          Int       // Issue number in repo
   title           String
   body            String?   @db.Text
@@ -145,7 +145,7 @@ model Issue {
 
 model Label {
   id           String   @id @default(cuid())
-  githubId     Int?     @unique
+  githubId     BigInt?  @unique
   name         String
   color        String   // Hex color
   description  String?
@@ -185,7 +185,7 @@ model IssueAssignee {
 
 model Milestone {
   id              String    @id @default(cuid())
-  githubId        Int?      @unique
+  githubId        BigInt?   @unique
   title           String
   description     String?   @db.Text
   state           String    // "open", "closed"
@@ -205,7 +205,7 @@ model Milestone {
 
 model Comment {
   id              String   @id @default(cuid())
-  githubId        Int?     @unique
+  githubId        BigInt?  @unique
   body            String   @db.Text
   issueId         String
   userId          String?

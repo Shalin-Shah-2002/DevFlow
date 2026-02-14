@@ -21,3 +21,5 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./user.model"), exports);
 // Authentication models
 __exportStar(require("./auth.model"), exports);
+// Repository models
+__exportStar(require("./repository.model"), exports);

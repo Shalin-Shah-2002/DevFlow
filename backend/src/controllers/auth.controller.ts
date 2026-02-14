@@ -185,7 +185,7 @@ export class AuthController {
    */
   static async getCurrentUser(req: Request, res: Response): Promise<void> {
     try {
-      const user = req.user as { id: string; email: string; githubId: number } | undefined;
+      const user = req.user as { id: string; email: string; githubId: bigint } | undefined;
       
       if (!user) {
         const errorResponse: ErrorResponse = {
@@ -259,7 +259,7 @@ export class AuthController {
    */
   static async refreshToken(req: Request, res: Response): Promise<void> {
     try {
-      const user = req.user as { id: string; email: string; githubId: number } | undefined;
+      const user = req.user as { id: string; email: string; githubId: bigint } | undefined;
       
       if (!user) {
         const errorResponse: ErrorResponse = {

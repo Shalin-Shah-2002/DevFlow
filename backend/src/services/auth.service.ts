@@ -139,7 +139,7 @@ export class AuthService {
   /**
    * Generate JWT token
    */
-  static generateJWT(userId: string, email: string, githubId: number): string {
+  static generateJWT(userId: string, email: string, githubId: bigint): string {
     const jwtSecret = process.env.JWT_SECRET || '';
     const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '7d';
 
@@ -150,7 +150,7 @@ export class AuthService {
     const payload = {
       id: userId,
       email,
-      githubId,
+      githubId: Number(githubId),
     };
 
     try {

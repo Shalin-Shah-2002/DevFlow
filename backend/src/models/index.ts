@@ -8,6 +8,9 @@ export * from './user.model';
 // Authentication models
 export * from './auth.model';
 
+// Repository models
+export * from './repository.model';
+
 // Common response types
 export interface ApiResponse<T = any> {
   success: boolean;

@@ -11,6 +11,7 @@ const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_1 = require("./config/swagger");
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
+const repository_routes_1 = __importDefault(require("./routes/repository.routes"));
 const error_middleware_1 = require("./middleware/error.middleware");
 // Load environment variables
 dotenv_1.default.config();
@@ -68,10 +69,9 @@ app.get('/api-docs.json', (req, res) => {
 });
 // API Routes
 app.use('/api/auth', auth_routes_1.default);
+app.use('/api/repositories', repository_routes_1.default);
 // TODO: Import and use additional routes as they are implemented
-// import repoRoutes from './routes/repository.routes';
 // import issueRoutes from './routes/issue.routes';
-// app.use('/api/repositories', repoRoutes);
 // app.use('/api/issues', issueRoutes);
 // 404 Handler
 app.use(error_middleware_1.notFoundHandler);
@@ -92,6 +92,7 @@ app.listen(PORT, () => {
   ⏰ Started at:  ${new Date().toLocaleString()}
   
   ✅ Authentication endpoints ready!
+  ✅ Repository endpoints ready!
   
 `);
 });

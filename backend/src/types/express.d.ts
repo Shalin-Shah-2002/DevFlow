@@ -1,11 +1,13 @@
 import { AuthUser } from '../models';
 
-declare namespace Express {
-  export interface Request {
-    user?: AuthUser;
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthUser;
+    }
+    
+    interface User extends AuthUser {}
   }
-  
-  export interface User extends AuthUser {}
 }
 
 export {};
