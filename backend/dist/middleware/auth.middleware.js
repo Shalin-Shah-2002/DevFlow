@@ -46,6 +46,7 @@ const authMiddleware = async (req, res, next) => {
                 id: true,
                 email: true,
                 githubId: true,
+                accessToken: true,
             },
         });
         if (!user) {
@@ -107,6 +108,7 @@ const optionalAuthMiddleware = async (req, res, next) => {
                 id: true,
                 email: true,
                 githubId: true,
+                accessToken: true,
             },
         });
         if (user) {

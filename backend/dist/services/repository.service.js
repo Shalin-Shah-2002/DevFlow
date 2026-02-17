@@ -326,14 +326,31 @@ class RepositoryService {
         }
         catch (error) {
             console.error('Error syncing repository:', error);
-            throw new Error('Failed to sync repository');
+            // Provide specific error messages
+            if (error.response) {
+                const status = error.response.status;
+                const message = error.response.data?.message || error.message;
+                if (status === 401) {
+                    throw new Error('GitHub authentication failed. Token may be invalid or expired.');
+                }
+                else if (status === 403) {
+                    throw new Error('GitHub API rate limit exceeded or insufficient permissions.');
+                }
+                else if (status === 404) {
+                    throw new Error(`Repository ${owner}/${repo} not found on GitHub or you don't have access.`);
+                }
+                else {
+                    throw new Error(`GitHub API error: ${message}`);
+                }
+            }
+            throw new Error(`Failed to sync repository: ${error.message}`);
         }
     }
     /**
      * Setup GitHub webhook
      */
     static async setupWebhook(repositoryId, owner, repo, accessToken) {
-        const webhookUrl = `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/webhooks/github`;
+        const webhookUrl = `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/webhooks/github`;
         try {
             const response = await axios_1.default.post(`https://api.github.com/repos/${owner}/${repo}/hooks`, {
                 name: 'web',
@@ -366,7 +383,27 @@ class RepositoryService {
         }
         catch (error) {
             console.error('Error setting up webhook:', error.response?.data || error);
-            throw new Error('Failed to setup webhook');
+            // Provide specific error messages
+            if (error.response) {
+                const status = error.response.status;
+                const message = error.response.data?.message || error.message;
+                if (status === 401) {
+                    throw new Error('GitHub authentication failed. Token may be invalid or expired.');
+                }
+                else if (status === 403) {
+                    throw new Error('Insufficient permissions to create webhooks. Need admin access to repository.');
+                }
+                else if (status === 404) {
+                    throw new Error(`Repository ${owner}/${repo} not found on GitHub or you don't have access.`);
+                }
+                else if (status === 422) {
+                    throw new Error('Webhook validation failed. URL may already have a webhook or is invalid.');
+                }
+                else {
+                    throw new Error(`GitHub API error: ${message}`);
+                }
+            }
+            throw new Error(`Failed to setup webhook: ${error.message}`);
         }
     }
     // ============= HELPER METHODS =============

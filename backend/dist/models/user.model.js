@@ -11,7 +11,7 @@ function toUserProfile(user) {
         name: user.name,
         avatar: user.avatar,
         githubLogin: user.githubLogin,
-        githubId: user.githubId,
+        githubId: Number(user.githubId),
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
     };

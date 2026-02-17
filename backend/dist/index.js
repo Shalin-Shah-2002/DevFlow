@@ -12,38 +12,58 @@ const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_1 = require("./config/swagger");
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const repository_routes_1 = __importDefault(require("./routes/repository.routes"));
+const issue_routes_1 = __importDefault(require("./routes/issue.routes"));
 const error_middleware_1 = require("./middleware/error.middleware");
 // Load environment variables
 dotenv_1.default.config();
 // Initialize Express app
 const app = (0, express_1.default)();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 // Security Middleware
-app.use((0, helmet_1.default)({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-            imgSrc: ["'self'", 'data:', 'https:'],
+// Disable helmet in development to avoid CSP issues
+if (process.env.NODE_ENV === 'production') {
+    app.use((0, helmet_1.default)({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                styleSrc: ["'self'", "'unsafe-inline'"],
+                scriptSrc: ["'self'", "'unsafe-inline'"],
+                imgSrc: ["'self'", 'data:', 'https:'],
+            },
         },
-    },
-}));
-// Rate Limiting
-const limiter = (0, express_rate_limit_1.default)({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again later.',
-});
-app.use('/api/', limiter);
-// CORS Configuration
-app.use((0, cors_1.default)({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
-}));
+    }));
+}
+else {
+    // In development, use helmet but disable CSP
+    app.use((0, helmet_1.default)({ contentSecurityPolicy: false }));
+}
+// CORS Configuration - Allow all origins in development
+if (process.env.NODE_ENV === 'production') {
+    app.use((0, cors_1.default)({
+        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+        credentials: true,
+    }));
+}
+else {
+    app.use((0, cors_1.default)());
+}
+// Rate Limiting - Only in production
+if (process.env.NODE_ENV === 'production') {
+    const limiter = (0, express_rate_limit_1.default)({
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 100, // Limit each IP to 100 requests per windowMs
+        message: 'Too many requests from this IP, please try again later.',
+    });
+    app.use('/api/', limiter);
+}
 // Body Parser Middleware
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
+// Request logging middleware
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
 // Basic Routes
 app.get('/', (req, res) => {
     res.json({
@@ -70,9 +90,7 @@ app.get('/api-docs.json', (req, res) => {
 // API Routes
 app.use('/api/auth', auth_routes_1.default);
 app.use('/api/repositories', repository_routes_1.default);
-// TODO: Import and use additional routes as they are implemented
-// import issueRoutes from './routes/issue.routes';
-// app.use('/api/issues', issueRoutes);
+app.use('/api/issues', issue_routes_1.default);
 // 404 Handler
 app.use(error_middleware_1.notFoundHandler);
 // Error Handler (must be last)
@@ -93,6 +111,7 @@ app.listen(PORT, () => {
   
   ✅ Authentication endpoints ready!
   ✅ Repository endpoints ready!
+  ✅ Issues endpoints ready! (12 endpoints)
   
 `);
 });

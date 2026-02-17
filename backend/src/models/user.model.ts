@@ -116,4 +116,5 @@ export interface AuthUser {
   id: string;
   email: string;
   githubId: bigint;
+  accessToken: string;
 }

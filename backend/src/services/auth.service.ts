@@ -108,8 +108,11 @@ export class AuthService {
       const tokenExpiry = new Date();
       tokenExpiry.setFullYear(tokenExpiry.getFullYear() + 1); // 1 year from now
 
+      // Convert GitHub user ID to BigInt for Prisma
+      const githubIdBigInt = BigInt(githubUser.id);
+
       const user = await prisma.user.upsert({
-        where: { githubId: githubUser.id },
+        where: { githubId: githubIdBigInt },
         update: {
           email: githubUser.email,
           name: githubUser.name,
@@ -119,7 +122,7 @@ export class AuthService {
           tokenExpiry: tokenExpiry,
         },
         create: {
-          githubId: githubUser.id,
+          githubId: githubIdBigInt,
           email: githubUser.email,
           name: githubUser.name,
           avatar: githubUser.avatar_url,

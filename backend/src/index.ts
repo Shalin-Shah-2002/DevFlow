@@ -7,6 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec, swaggerUiOptions } from './config/swagger';
 import authRoutes from './routes/auth.routes';
 import repositoryRoutes from './routes/repository.routes';
+import issueRoutes from './routes/issue.routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
 // Load environment variables
@@ -45,7 +46,6 @@ if (process.env.NODE_ENV === 'production') {
     })
   );
 } else {
-  // In development, allow all origins
   app.use(cors());
 }
 
@@ -99,10 +99,7 @@ app.get('/api-docs.json', (req: Request, res: Response) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/repositories', repositoryRoutes);
-
-// TODO: Import and use additional routes as they are implemented
-// import issueRoutes from './routes/issue.routes';
-// app.use('/api/issues', issueRoutes);
+app.use('/api/issues', issueRoutes);
 
 // 404 Handler
 app.use(notFoundHandler);
@@ -126,6 +123,7 @@ app.listen(PORT, () => {
   
   ✅ Authentication endpoints ready!
   ✅ Repository endpoints ready!
+  ✅ Issues endpoints ready! (12 endpoints)
   
 `);
 });

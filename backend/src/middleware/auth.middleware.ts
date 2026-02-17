@@ -53,6 +53,7 @@ export const authMiddleware = async (
         id: true,
         email: true,
         githubId: true,
+        accessToken: true,
       },
     });
 
@@ -126,6 +127,7 @@ export const optionalAuthMiddleware = async (
         id: true,
         email: true,
         githubId: true,
+        accessToken: true,
       },
     });
 

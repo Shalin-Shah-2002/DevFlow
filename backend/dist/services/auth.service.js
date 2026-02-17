@@ -122,8 +122,10 @@ class AuthService {
             // Calculate token expiry (GitHub tokens don't expire, but we'll set a reasonable date)
             const tokenExpiry = new Date();
             tokenExpiry.setFullYear(tokenExpiry.getFullYear() + 1); // 1 year from now
+            // Convert GitHub user ID to BigInt for Prisma
+            const githubIdBigInt = BigInt(githubUser.id);
             const user = await prisma_1.default.user.upsert({
-                where: { githubId: githubUser.id },
+                where: { githubId: githubIdBigInt },
                 update: {
                     email: githubUser.email,
                     name: githubUser.name,
@@ -133,7 +135,7 @@ class AuthService {
                     tokenExpiry: tokenExpiry,
                 },
                 create: {
-                    githubId: githubUser.id,
+                    githubId: githubIdBigInt,
                     email: githubUser.email,
                     name: githubUser.name,
                     avatar: githubUser.avatar_url,
@@ -161,7 +163,7 @@ class AuthService {
         const payload = {
             id: userId,
             email,
-            githubId,
+            githubId: Number(githubId),
         };
         try {
             return jwt.sign(payload, jwtSecret, { expiresIn: jwtExpiresIn });

@@ -72,7 +72,12 @@ class RepositoryController {
      */
     static async getRepositories(req, res) {
         try {
-            const userId = req.user.id;
+            const user = req.user;
+            if (!user) {
+                res.status(401).json({ success: false, error: 'Unauthorized' });
+                return;
+            }
+            const userId = user.id;
             const { group, search, page, limit } = req.query;
             const result = await repository_service_1.RepositoryService.getUserRepositories(userId, {
                 group: group,
@@ -127,7 +132,12 @@ class RepositoryController {
      */
     static async getRepositoryById(req, res) {
         try {
-            const userId = req.user.id;
+            const user = req.user;
+            if (!user) {
+                res.status(401).json({ success: false, error: 'Unauthorized' });
+                return;
+            }
+            const userId = user.id;
             const { id } = req.params;
             if (typeof id !== 'string') {
                 res.status(400).json({
@@ -195,7 +205,12 @@ class RepositoryController {
      */
     static async addRepository(req, res) {
         try {
-            const userId = req.user.id;
+            const user = req.user;
+            if (!user) {
+                res.status(401).json({ success: false, error: 'Unauthorized' });
+                return;
+            }
+            const userId = user.id;
             const { repoUrl, group } = req.body;
             if (!repoUrl) {
                 res.status(400).json({
@@ -205,11 +220,11 @@ class RepositoryController {
                 return;
             }
             // Get user's access token for GitHub API
-            const user = await require('../config/prisma').default.user.findUnique({
+            const dbUser = await require('../config/prisma').default.user.findUnique({
                 where: { id: userId },
                 select: { accessToken: true },
             });
-            const repository = await repository_service_1.RepositoryService.addRepository(userId, repoUrl, group, user?.accessToken);
+            const repository = await repository_service_1.RepositoryService.addRepository(userId, repoUrl, group, dbUser?.accessToken);
             res.status(201).json({
                 success: true,
                 message: 'Repository added successfully',
@@ -266,7 +281,12 @@ class RepositoryController {
      */
     static async updateRepository(req, res) {
         try {
-            const userId = req.user.id;
+            const user = req.user;
+            if (!user) {
+                res.status(401).json({ success: false, error: 'Unauthorized' });
+                return;
+            }
+            const userId = user.id;
             const { id } = req.params;
             const { group, webhookEnabled } = req.body;
             if (typeof id !== 'string') {
@@ -320,7 +340,12 @@ class RepositoryController {
      */
     static async deleteRepository(req, res) {
         try {
-            const userId = req.user.id;
+            const user = req.user;
+            if (!user) {
+                res.status(401).json({ success: false, error: 'Unauthorized' });
+                return;
+            }
+            const userId = user.id;
             const { id } = req.params;
             if (typeof id !== 'string') {
                 res.status(400).json({
@@ -389,7 +414,12 @@ class RepositoryController {
      */
     static async syncRepository(req, res) {
         try {
-            const userId = req.user.id;
+            const user = req.user;
+            if (!user) {
+                res.status(401).json({ success: false, error: 'Unauthorized' });
+                return;
+            }
+            const userId = user.id;
             const { id } = req.params;
             if (typeof id !== 'string') {
                 res.status(400).json({
@@ -403,11 +433,19 @@ class RepositoryController {
             // Parse owner and repo from fullName
             const [owner, repo] = repository.fullName.split('/');
             // Get user's access token
-            const user = await require('../config/prisma').default.user.findUnique({
+            const authUser = await require('../config/prisma').default.user.findUnique({
                 where: { id: userId },
                 select: { accessToken: true },
             });
-            const result = await repository_service_1.RepositoryService.syncRepositoryIssues(id, owner, repo, user?.accessToken);
+            if (!authUser?.accessToken || authUser.accessToken === '' || authUser.accessToken === 'test_token') {
+                res.status(400).json({
+                    success: false,
+                    error: 'GitHub access token not configured. Please complete OAuth authentication first.',
+                    hint: 'Visit /api/auth/github to authenticate with GitHub',
+                });
+                return;
+            }
+            const result = await repository_service_1.RepositoryService.syncRepositoryIssues(id, owner, repo, authUser.accessToken);
             res.status(200).json(result);
         }
         catch (error) {
@@ -455,7 +493,12 @@ class RepositoryController {
      */
     static async setupWebhook(req, res) {
         try {
-            const userId = req.user.id;
+            const user = req.user;
+            if (!user) {
+                res.status(401).json({ success: false, error: 'Unauthorized' });
+                return;
+            }
+            const userId = user.id;
             const { id } = req.params;
             if (typeof id !== 'string') {
                 res.status(400).json({
@@ -469,18 +512,20 @@ class RepositoryController {
             // Parse owner and repo from fullName
             const [owner, repo] = repository.fullName.split('/');
             // Get user's access token
-            const user = await require('../config/prisma').default.user.findUnique({
+            const authUser = await require('../config/prisma').default.user.findUnique({
                 where: { id: userId },
                 select: { accessToken: true },
             });
-            if (!user?.accessToken) {
-                res.status(401).json({
+            if (!authUser?.accessToken || authUser.accessToken === '' || authUser.accessToken === 'test_token') {
+                res.status(400).json({
                     success: false,
-                    error: 'GitHub access token not found',
+                    error: 'GitHub access token not configured. Please complete OAuth authentication first.',
+                    hint: 'Visit /api/auth/github to authenticate with GitHub',
+                    note: 'Webhooks require a valid GitHub access token with repo permissions',
                 });
                 return;
             }
-            const result = await repository_service_1.RepositoryService.setupWebhook(id, owner, repo, user.accessToken);
+            const result = await repository_service_1.RepositoryService.setupWebhook(id, owner, repo, authUser.accessToken);
             res.status(200).json(result);
         }
         catch (error) {
