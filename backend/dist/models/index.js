@@ -23,3 +23,5 @@ __exportStar(require("./user.model"), exports);
 __exportStar(require("./auth.model"), exports);
 // Repository models
 __exportStar(require("./repository.model"), exports);
+// Label models
+__exportStar(require("./label.model"), exports);

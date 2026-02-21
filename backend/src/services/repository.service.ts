@@ -3,7 +3,6 @@ import prisma from '../config/prisma';
 import {
   GitHubRepository,
   GitHubIssue,
-  GitHubLabel,
   GitHubMilestone,
   RepositoryResponse,
   toRepositoryResponse,

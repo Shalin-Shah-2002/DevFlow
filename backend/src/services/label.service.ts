@@ -87,10 +87,10 @@ export const getLabels = async (
     take: pageSize,
   });
 
-  // Transform to LabelWithStats
+  // Transform to LabelWithStats (convert BigInt to number for JSON serialization)
   let labelsWithStats: LabelWithStats[] = labels.map((label) => ({
     id: label.id,
-    githubId: label.githubId,
+    githubId: label.githubId ? Number(label.githubId) : null,
     name: label.name,
     color: label.color,
     description: label.description,
@@ -158,7 +158,7 @@ export const getLabelById = async (
 
   return {
     id: label.id,
-    githubId: label.githubId,
+    githubId: label.githubId ? Number(label.githubId) : null,
     name: label.name,
     color: label.color,
     description: label.description,
@@ -223,7 +223,10 @@ export const createLabel = async (
     },
   });
 
-  return label;
+  return {
+    ...label,
+    githubId: label.githubId ? Number(label.githubId) : null,
+  };
 };
 
 /**
@@ -292,7 +295,10 @@ export const updateLabel = async (
     },
   });
 
-  return label;
+  return {
+    ...label,
+    githubId: label.githubId ? Number(label.githubId) : null,
+  };
 };
 
 /**
@@ -390,7 +396,7 @@ export const syncLabelsFromGitHub = async (
     const githubLabels = response.data;
     let created = 0;
     let updated = 0;
-    const labels: Label[] = [];
+    const labels: any[] = [];
 
     // Sync each label
     for (const ghLabel of githubLabels) {
@@ -408,7 +414,10 @@ export const syncLabelsFromGitHub = async (
             description: ghLabel.description,
           },
         });
-        labels.push(label);
+        labels.push({
+          ...label,
+          githubId: label.githubId ? Number(label.githubId) : null,
+        });
         updated++;
       } else {
         // Create new label
@@ -422,7 +431,10 @@ export const syncLabelsFromGitHub = async (
               repositoryId,
             },
           });
-          labels.push(label);
+          labels.push({
+            ...label,
+            githubId: label.githubId ? Number(label.githubId) : null,
+          });
           created++;
         } catch (error: any) {
           // Handle unique constraint violation (label name conflict)
@@ -441,7 +453,10 @@ export const syncLabelsFromGitHub = async (
                 description: ghLabel.description,
               },
             });
-            labels.push(label);
+            labels.push({
+              ...label,
+              githubId: label.githubId ? Number(label.githubId) : null,
+            });
             updated++;
           } else {
             throw error;

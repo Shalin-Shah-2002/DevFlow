@@ -11,6 +11,9 @@ export * from './auth.model';
 // Repository models
 export * from './repository.model';
 
+// Label models
+export * from './label.model';
+
 // Common response types
 export interface ApiResponse<T = any> {
   success: boolean;

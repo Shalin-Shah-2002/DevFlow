@@ -778,22 +778,56 @@ class IssueService {
     }
     // ============= GITHUB API METHODS =============
     static async createGitHubIssue(owner, repo, data, accessToken) {
-        const response = await axios_1.default.post(`https://api.github.com/repos/${owner}/${repo}/issues`, data, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                Accept: 'application/vnd.github.v3+json',
-            },
-        });
-        return response.data;
+        // Clean data - remove undefined/empty values
+        const payload = {
+            title: data.title,
+        };
+        if (data.body)
+            payload.body = data.body;
+        if (data.labels && data.labels.length > 0)
+            payload.labels = data.labels;
+        if (data.assignees && data.assignees.length > 0)
+            payload.assignees = data.assignees;
+        if (data.milestone)
+            payload.milestone = data.milestone;
+        try {
+            const response = await axios_1.default.post(`https://api.github.com/repos/${owner}/${repo}/issues`, payload, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    Accept: 'application/vnd.github.v3+json',
+                },
+            });
+            return response.data;
+        }
+        catch (error) {
+            // Handle GitHub API errors with detailed messages
+            if (error.response?.status === 422) {
+                const errors = error.response.data?.errors || [];
+                const errorMessages = errors.map((e) => `${e.field}: ${e.message || e.code}`).join(', ');
+                throw new Error(`GitHub validation failed: ${errorMessages || error.response.data?.message || 'Invalid request data. Check that assignees have repository access and labels exist.'}`);
+            }
+            throw error;
+        }
     }
     static async updateGitHubIssue(owner, repo, issueNumber, data, accessToken) {
-        const response = await axios_1.default.patch(`https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`, data, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                Accept: 'application/vnd.github.v3+json',
-            },
-        });
-        return response.data;
+        try {
+            const response = await axios_1.default.patch(`https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`, data, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    Accept: 'application/vnd.github.v3+json',
+                },
+            });
+            return response.data;
+        }
+        catch (error) {
+            // Handle GitHub API errors with detailed messages
+            if (error.response?.status === 422) {
+                const errors = error.response.data?.errors || [];
+                const errorMessages = errors.map((e) => `${e.field}: ${e.message || e.code}`).join(', ');
+                throw new Error(`GitHub validation failed: ${errorMessages || error.response.data?.message || 'Invalid request data. Check that assignees have repository access and labels exist.'}`);
+            }
+            throw error;
+        }
     }
     static async createGitHubComment(owner, repo, issueNumber, body, accessToken) {
         const response = await axios_1.default.post(`https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/comments`, { body }, {

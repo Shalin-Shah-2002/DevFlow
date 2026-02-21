@@ -13,6 +13,7 @@ const swagger_1 = require("./config/swagger");
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const repository_routes_1 = __importDefault(require("./routes/repository.routes"));
 const issue_routes_1 = __importDefault(require("./routes/issue.routes"));
+const label_routes_1 = __importDefault(require("./routes/label.routes"));
 const error_middleware_1 = require("./middleware/error.middleware");
 // Load environment variables
 dotenv_1.default.config();
@@ -91,6 +92,7 @@ app.get('/api-docs.json', (req, res) => {
 app.use('/api/auth', auth_routes_1.default);
 app.use('/api/repositories', repository_routes_1.default);
 app.use('/api/issues', issue_routes_1.default);
+app.use('/api/labels', label_routes_1.default);
 // 404 Handler
 app.use(error_middleware_1.notFoundHandler);
 // Error Handler (must be last)
@@ -112,6 +114,7 @@ app.listen(PORT, () => {
   ✅ Authentication endpoints ready!
   ✅ Repository endpoints ready!
   ✅ Issues endpoints ready! (12 endpoints)
+  ✅ Labels endpoints ready! (6 endpoints)
   
 `);
 });

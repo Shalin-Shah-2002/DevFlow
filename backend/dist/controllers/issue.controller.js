@@ -11,79 +11,78 @@ const issue_service_1 = require("../services/issue.service");
  *       properties:
  *         id:
  *           type: string
- *           example: ckl1234567890
- *         githubId:
- *           type: integer
- *           example: 12345
+ *           example: clx123abc456
  *         repositoryId:
  *           type: string
- *           example: repo123
+ *           example: clx987xyz654
+ *         githubIssueId:
+ *           type: integer
+ *           example: 1234567890
+ *         githubNumber:
+ *           type: integer
+ *           example: 42
  *         title:
  *           type: string
  *           example: Fix login bug
  *         body:
  *           type: string
- *           example: Users cannot login with email containing +
+ *           example: Users cannot login with OAuth
  *         state:
  *           type: string
  *           enum: [open, closed]
  *           example: open
+ *         stateReason:
+ *           type: string
+ *           enum: [completed, not_planned, reopened]
+ *           example: completed
  *         priority:
  *           type: string
  *           enum: [P0, P1, P2, P3]
  *           example: P1
- *         labels:
- *           type: array
- *           items:
- *             type: string
- *           example: [bug, urgent]
- *         assignees:
- *           type: array
- *           items:
- *             type: string
- *           example: [user123]
+ *         customStatus:
+ *           type: string
+ *           example: In Progress
+ *         htmlUrl:
+ *           type: string
+ *           example: https://github.com/owner/repo/issues/42
  *         createdAt:
  *           type: string
  *           format: date-time
  *         updatedAt:
  *           type: string
  *           format: date-time
- *     IssueList:
+ *         closedAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *     Comment:
  *       type: object
  *       properties:
- *         success:
- *           type: boolean
- *           example: true
- *         data:
- *           type: object
- *           properties:
- *             issues:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Issue'
- *             pagination:
- *               type: object
- *               properties:
- *                 page:
- *                   type: integer
- *                   example: 1
- *                 limit:
- *                   type: integer
- *                   example: 20
- *                 total:
- *                   type: integer
- *                   example: 100
- *                 totalPages:
- *                   type: integer
- *                   example: 5
+ *         id:
+ *           type: string
+ *         issueId:
+ *           type: string
+ *         userId:
+ *           type: string
+ *         body:
+ *           type: string
+ *         githubCommentId:
+ *           type: integer
+ *           nullable: true
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  */
 class IssueController {
     /**
      * @swagger
      * /api/issues:
      *   get:
-     *     summary: Get all issues with filters
-     *     description: Retrieve paginated list of issues with advanced filtering options
+     *     summary: List all issues with advanced filters
+     *     description: Get paginated list of issues with filtering, search, and sorting
      *     tags: [Issues]
      *     security:
      *       - bearerAuth: []
@@ -103,7 +102,7 @@ class IssueController {
      *         name: label
      *         schema:
      *           type: string
-     *         description: Filter by label (comma-separated for multiple)
+     *         description: Filter by labels (comma-separated)
      *       - in: query
      *         name: repository
      *         schema:
@@ -119,6 +118,16 @@ class IssueController {
      *         schema:
      *           type: string
      *         description: Search in title and body
+     *       - in: query
+     *         name: category
+     *         schema:
+     *           type: string
+     *         description: Filter by category ID
+     *       - in: query
+     *         name: milestone
+     *         schema:
+     *           type: string
+     *         description: Filter by milestone ID
      *       - in: query
      *         name: page
      *         schema:
@@ -145,17 +154,35 @@ class IssueController {
      *         schema:
      *           type: string
      *           enum: [asc, desc]
-     *           default: desc
      *         description: Sort order
      *     responses:
      *       200:
-     *         description: Issues retrieved successfully
+     *         description: List of issues with pagination
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/IssueList'
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     $ref: '#/components/schemas/Issue'
+     *                 pagination:
+     *                   type: object
+     *                   properties:
+     *                     total:
+     *                       type: integer
+     *                     page:
+     *                       type: integer
+     *                     limit:
+     *                       type: integer
+     *                     pages:
+     *                       type: integer
      *       401:
-     *         description: Unauthorized - Invalid or missing token
+     *         description: Unauthorized
      *       500:
      *         description: Server error
      */
@@ -197,7 +224,7 @@ class IssueController {
      * /api/issues/{id}:
      *   get:
      *     summary: Get single issue by ID
-     *     description: Retrieve detailed information about a specific issue
+     *     description: Get detailed information about a specific issue
      *     tags: [Issues]
      *     security:
      *       - bearerAuth: []
@@ -210,7 +237,7 @@ class IssueController {
      *         description: Issue ID
      *     responses:
      *       200:
-     *         description: Issue retrieved successfully
+     *         description: Issue details
      *         content:
      *           application/json:
      *             schema:
@@ -244,8 +271,8 @@ class IssueController {
      * @swagger
      * /api/issues:
      *   post:
-     *     summary: Create new issue
-     *     description: Create a new issue in a repository
+     *     summary: Create a new issue
+     *     description: Create a new issue in a repository (syncs with GitHub)
      *     tags: [Issues]
      *     security:
      *       - bearerAuth: []
@@ -261,29 +288,36 @@ class IssueController {
      *             properties:
      *               repositoryId:
      *                 type: string
-     *                 description: Repository ID
+     *                 example: clx987xyz654
      *               title:
      *                 type: string
-     *                 minLength: 1
-     *                 maxLength: 256
-     *                 description: Issue title
+     *                 example: Fix authentication bug
      *               body:
      *                 type: string
-     *                 description: Issue description
+     *                 example: Users cannot login properly
      *               labels:
      *                 type: array
      *                 items:
      *                   type: string
-     *                 description: Array of label names
+     *                 example: [bug, urgent]
      *               assignees:
      *                 type: array
      *                 items:
      *                   type: string
-     *                 description: Array of user IDs to assign
+     *                 example: [johndoe]
+     *               milestone:
+     *                 type: string
+     *                 example: v1.0.0
      *               priority:
      *                 type: string
      *                 enum: [P0, P1, P2, P3]
-     *                 description: Issue priority level
+     *                 example: P1
+     *               customStatus:
+     *                 type: string
+     *                 example: Backlog
+     *               estimatedTime:
+     *                 type: integer
+     *                 example: 120
      *     responses:
      *       201:
      *         description: Issue created successfully
@@ -301,7 +335,7 @@ class IssueController {
      *                 data:
      *                   $ref: '#/components/schemas/Issue'
      *       400:
-     *         description: Bad request - validation error
+     *         description: Invalid request
      *       401:
      *         description: Unauthorized
      */
@@ -325,8 +359,8 @@ class IssueController {
      * @swagger
      * /api/issues/{id}:
      *   patch:
-     *     summary: Update issue
-     *     description: Update an existing issue's properties
+     *     summary: Update an existing issue
+     *     description: Update issue details (syncs with GitHub)
      *     tags: [Issues]
      *     security:
      *       - bearerAuth: []
@@ -346,23 +380,43 @@ class IssueController {
      *             properties:
      *               title:
      *                 type: string
-     *                 minLength: 1
-     *                 maxLength: 256
      *               body:
      *                 type: string
      *               state:
      *                 type: string
      *                 enum: [open, closed]
+     *               stateReason:
+     *                 type: string
+     *                 enum: [completed, not_planned, reopened]
      *               priority:
      *                 type: string
      *                 enum: [P0, P1, P2, P3]
+     *               customStatus:
+     *                 type: string
+     *               estimatedTime:
+     *                 type: integer
      *               labels:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     *               assignees:
      *                 type: array
      *                 items:
      *                   type: string
      *     responses:
      *       200:
      *         description: Issue updated successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   $ref: '#/components/schemas/Issue'
      *       404:
      *         description: Issue not found
      *       401:
@@ -389,8 +443,8 @@ class IssueController {
      * @swagger
      * /api/issues/{id}:
      *   delete:
-     *     summary: Close issue
-     *     description: Close an issue with a reason
+     *     summary: Close an issue
+     *     description: Close an issue with a reason (syncs with GitHub)
      *     tags: [Issues]
      *     security:
      *       - bearerAuth: []
@@ -407,10 +461,21 @@ class IssueController {
      *           type: string
      *           enum: [completed, not_planned]
      *           default: completed
-     *         description: Reason for closing the issue
+     *         description: Reason for closing
      *     responses:
      *       200:
      *         description: Issue closed successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: Issue closed successfully
      *       404:
      *         description: Issue not found
      *       401:
@@ -436,8 +501,8 @@ class IssueController {
      * @swagger
      * /api/issues/bulk:
      *   post:
-     *     summary: Bulk operations on issues
-     *     description: Perform operations on multiple issues at once
+     *     summary: Perform bulk operations on multiple issues
+     *     description: Close, update labels, or assign users to multiple issues at once
      *     tags: [Issues]
      *     security:
      *       - bearerAuth: []
@@ -448,26 +513,37 @@ class IssueController {
      *           schema:
      *             type: object
      *             required:
-     *               - action
      *               - issueIds
+     *               - operation
      *             properties:
-     *               action:
-     *                 type: string
-     *                 enum: [close, reopen, assign, label, priority]
-     *                 description: Action to perform
      *               issueIds:
      *                 type: array
      *                 items:
      *                   type: string
-     *                 description: Array of issue IDs
-     *               data:
-     *                 type: object
-     *                 description: Additional data for the action
+     *                 example: [clx123, clx456]
+     *               operation:
+     *                 type: string
+     *                 enum: [close, addLabel, removeLabel, assign, unassign]
+     *                 example: close
+     *               labels:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     *                 description: Labels to add/remove (for label operations)
+     *               assignees:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     *                 description: Users to assign/unassign
+     *               stateReason:
+     *                 type: string
+     *                 enum: [completed, not_planned]
+     *                 description: Reason for closing (for close operation)
      *     responses:
      *       200:
      *         description: Bulk operation completed
      *       400:
-     *         description: Bad request
+     *         description: Invalid request
      *       401:
      *         description: Unauthorized
      */
@@ -484,8 +560,54 @@ class IssueController {
         }
     }
     /**
-     * GET /api/issues/:id/comments
-     * Get issue comments
+     * @swagger
+     * /api/issues/{id}/comments:
+     *   get:
+     *     summary: Get all comments for an issue
+     *     description: Retrieve paginated comments for a specific issue
+     *     tags: [Issues]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Issue ID
+     *       - in: query
+     *         name: page
+     *         schema:
+     *           type: integer
+     *           minimum: 1
+     *           default: 1
+     *       - in: query
+     *         name: limit
+     *         schema:
+     *           type: integer
+     *           minimum: 1
+     *           maximum: 100
+     *           default: 50
+     *     responses:
+     *       200:
+     *         description: List of comments
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     $ref: '#/components/schemas/Comment'
+     *                 pagination:
+     *                   type: object
+     *       404:
+     *         description: Issue not found
+     *       401:
+     *         description: Unauthorized
      */
     static async getComments(req, res, next) {
         try {
@@ -501,8 +623,51 @@ class IssueController {
         }
     }
     /**
-     * POST /api/issues/:id/comments
-     * Add comment to issue
+     * @swagger
+     * /api/issues/{id}/comments:
+     *   post:
+     *     summary: Add a comment to an issue
+     *     description: Create a new comment on an issue (syncs with GitHub)
+     *     tags: [Issues]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Issue ID
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - body
+     *             properties:
+     *               body:
+     *                 type: string
+     *                 example: This issue has been fixed in the latest commit
+     *     responses:
+     *       201:
+     *         description: Comment added successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   $ref: '#/components/schemas/Comment'
+     *       404:
+     *         description: Issue not found
+     *       401:
+     *         description: Unauthorized
      */
     static async addComment(req, res, next) {
         try {
@@ -522,8 +687,48 @@ class IssueController {
         }
     }
     /**
-     * PATCH /api/issues/:id/comments/:commentId
-     * Edit comment
+     * @swagger
+     * /api/issues/{id}/comments/{commentId}:
+     *   patch:
+     *     summary: Update a comment
+     *     description: Edit an existing comment (syncs with GitHub)
+     *     tags: [Issues]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Issue ID
+     *       - in: path
+     *         name: commentId
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Comment ID
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - body
+     *             properties:
+     *               body:
+     *                 type: string
+     *                 example: Updated comment text
+     *     responses:
+     *       200:
+     *         description: Comment updated successfully
+     *       404:
+     *         description: Comment not found
+     *       401:
+     *         description: Unauthorized
+     *       403:
+     *         description: Not authorized to edit this comment
      */
     static async updateComment(req, res, next) {
         try {
@@ -544,8 +749,36 @@ class IssueController {
         }
     }
     /**
-     * DELETE /api/issues/:id/comments/:commentId
-     * Delete comment
+     * @swagger
+     * /api/issues/{id}/comments/{commentId}:
+     *   delete:
+     *     summary: Delete a comment
+     *     description: Remove a comment from an issue (syncs with GitHub)
+     *     tags: [Issues]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Issue ID
+     *       - in: path
+     *         name: commentId
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Comment ID
+     *     responses:
+     *       200:
+     *         description: Comment deleted successfully
+     *       404:
+     *         description: Comment not found
+     *       401:
+     *         description: Unauthorized
+     *       403:
+     *         description: Not authorized to delete this comment
      */
     static async deleteComment(req, res, next) {
         try {
@@ -564,8 +797,8 @@ class IssueController {
      * @swagger
      * /api/issues/{id}/assign:
      *   post:
-     *     summary: Assign users to issue
-     *     description: Assign or unassign users to/from an issue
+     *     summary: Assign or unassign users
+     *     description: Add or remove user assignments from an issue (syncs with GitHub)
      *     tags: [Issues]
      *     security:
      *       - bearerAuth: []
@@ -582,22 +815,22 @@ class IssueController {
      *         application/json:
      *           schema:
      *             type: object
-     *             required:
-     *               - assignees
      *             properties:
-     *               assignees:
+     *               add:
      *                 type: array
      *                 items:
      *                   type: string
-     *                 description: Array of user IDs to assign
-     *               action:
-     *                 type: string
-     *                 enum: [add, remove, set]
-     *                 default: set
-     *                 description: Assignment action
+     *                 description: GitHub usernames to assign
+     *                 example: [johndoe, janedoe]
+     *               remove:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     *                 description: GitHub usernames to unassign
+     *                 example: [olduser]
      *     responses:
      *       200:
-     *         description: Users assigned successfully
+     *         description: Assignments updated successfully
      *       404:
      *         description: Issue not found
      *       401:
@@ -621,7 +854,7 @@ class IssueController {
      * /api/issues/{id}/labels:
      *   post:
      *     summary: Manage issue labels
-     *     description: Add or remove labels from an issue
+     *     description: Add or remove labels from an issue (syncs with GitHub)
      *     tags: [Issues]
      *     security:
      *       - bearerAuth: []
@@ -638,19 +871,19 @@ class IssueController {
      *         application/json:
      *           schema:
      *             type: object
-     *             required:
-     *               - labels
      *             properties:
-     *               labels:
+     *               add:
      *                 type: array
      *                 items:
      *                   type: string
-     *                 description: Array of label names
-     *               action:
-     *                 type: string
-     *                 enum: [add, remove, set]
-     *                 default: set
-     *                 description: Label management action
+     *                 description: Labels to add
+     *                 example: [bug, urgent]
+     *               remove:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     *                 description: Labels to remove
+     *                 example: [wontfix]
      *     responses:
      *       200:
      *         description: Labels updated successfully
@@ -673,8 +906,43 @@ class IssueController {
         }
     }
     /**
-     * POST /api/issues/:id/categories
-     * Add categories to issue (local only)
+     * @swagger
+     * /api/issues/{id}/categories:
+     *   post:
+     *     summary: Add categories to issue
+     *     description: Add custom categories to an issue (local only, not synced to GitHub)
+     *     tags: [Issues]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Issue ID
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - categoryIds
+     *             properties:
+     *               categoryIds:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     *                 example: [clx123, clx456]
+     *                 description: Array of category IDs to add
+     *     responses:
+     *       200:
+     *         description: Categories added successfully
+     *       404:
+     *         description: Issue not found
+     *       401:
+     *         description: Unauthorized
      */
     static async addCategories(req, res, next) {
         try {

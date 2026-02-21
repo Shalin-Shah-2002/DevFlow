@@ -7,7 +7,7 @@
 
 export interface Label {
   id: string;
-  githubId: bigint | null;
+  githubId: number | null;
   name: string;
   color: string; // Hex color code
   description: string | null;

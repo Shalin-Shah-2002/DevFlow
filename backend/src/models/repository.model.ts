@@ -126,7 +126,8 @@ export interface GitHubIssue {
   html_url: string;
 }
 
-export interface GitHubLabel {
+// Internal GitHub types for API responses
+interface GitHubLabel {
   id: number;
   name: string;
   color: string;
