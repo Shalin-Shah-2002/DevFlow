@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.routes';
 import repositoryRoutes from './routes/repository.routes';
 import issueRoutes from './routes/issue.routes';
 import labelRoutes from './routes/label.routes';
+import categoryRoutes from './routes/category.routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
 // Load environment variables
@@ -102,6 +103,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/repositories', repositoryRoutes);
 app.use('/api/issues', issueRoutes);
 app.use('/api/labels', labelRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // 404 Handler
 app.use(notFoundHandler);
@@ -113,7 +115,7 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`
 ╔═══════════════════════════════════════╗
-║     🚀 DevFlow API Server Started    ║
+║    n🚀 DevFlow API Server Started    ║
 ╚═══════════════════════════════════════╝
   
   🌐 Server:      http://localhost:${PORT}
@@ -127,6 +129,7 @@ app.listen(PORT, () => {
   ✅ Repository endpoints ready!
   ✅ Issues endpoints ready! (12 endpoints)
   ✅ Labels endpoints ready! (6 endpoints)
+  ✅ Categories endpoints ready! (6 endpoints)
   
 `);
 });

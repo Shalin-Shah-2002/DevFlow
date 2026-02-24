@@ -588,7 +588,7 @@ export class IssueController {
    *   get:
    *     summary: Get all comments for an issue
    *     description: Retrieve paginated comments for a specific issue
-   *     tags: [Issues]
+   *     tags: [Comments]
    *     security:
    *       - bearerAuth: []
    *     parameters:
@@ -653,7 +653,7 @@ export class IssueController {
    *   post:
    *     summary: Add a comment to an issue
    *     description: Create a new comment on an issue (syncs with GitHub)
-   *     tags: [Issues]
+   *     tags: [Comments]
    *     security:
    *       - bearerAuth: []
    *     parameters:
@@ -719,7 +719,7 @@ export class IssueController {
    *   patch:
    *     summary: Update a comment
    *     description: Edit an existing comment (syncs with GitHub)
-   *     tags: [Issues]
+   *     tags: [Comments]
    *     security:
    *       - bearerAuth: []
    *     parameters:
@@ -789,7 +789,7 @@ export class IssueController {
    *   delete:
    *     summary: Delete a comment
    *     description: Remove a comment from an issue (syncs with GitHub)
-   *     tags: [Issues]
+   *     tags: [Comments]
    *     security:
    *       - bearerAuth: []
    *     parameters:
@@ -836,7 +836,7 @@ export class IssueController {
    *   post:
    *     summary: Assign or unassign users
    *     description: Add or remove user assignments from an issue (syncs with GitHub)
-   *     tags: [Issues]
+   *     tags: [Comments]
    *     security:
    *       - bearerAuth: []
    *     parameters:
@@ -894,7 +894,7 @@ export class IssueController {
    *   post:
    *     summary: Manage issue labels
    *     description: Add or remove labels from an issue (syncs with GitHub)
-   *     tags: [Issues]
+   *     tags: [Comments]
    *     security:
    *       - bearerAuth: []
    *     parameters:
@@ -952,7 +952,7 @@ export class IssueController {
    *   post:
    *     summary: Add categories to issue
    *     description: Add custom categories to an issue (local only, not synced to GitHub)
-   *     tags: [Issues]
+   *     tags: [Categories]
    *     security:
    *       - bearerAuth: []
    *     parameters:

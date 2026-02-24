@@ -1,6 +1,6 @@
 # DevFlow - GitHub Project Dashboard
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)
 ![Status](https://img.shields.io/badge/status-in%20development-yellow.svg)
 ![License](https://img.shields.io/badge/license-ISC-green.svg)
 
@@ -67,6 +67,17 @@
 - Direct GitHub synchronization
 - Pagination support
 
+✅ **Labels Management** (100%)
+- Create, update and delete labels per repository
+- Sync labels directly from GitHub
+- Full label metadata (name, color, description)
+
+✅ **Custom Categories** (100%)
+- Create and manage custom issue categories per user
+- Assign/remove categories on any issue
+- Conflict detection (duplicate names)
+- Issue count per category
+
 ✅ **Developer Experience**
 - 🔥 Interactive Swagger UI at `/api-docs`
 - 📋 Complete OpenAPI 3.0 specification
@@ -77,16 +88,15 @@
 
 ### 📊 Current Status
 
-- **24 API endpoints** implemented and fully functional
+- **36 API endpoints** implemented and fully functional
 - **18 database tables** with complete relationships
-- **3 major API categories** completed (Auth, Repos, Issues)
+- **5 major API categories** completed (Auth, Repos, Issues, Labels, Categories)
 - **Swagger documentation** for all endpoints
 - **Production-ready** backend infrastructure
 
 ### 🚧 Coming Next
 
-- Labels API (6 endpoints)
-- Categories & Custom Workflows (6 endpoints)
+- Filters & Views API (5 endpoints)
 - Analytics Dashboard (6 endpoints)
 - Notifications System (5 endpoints)
 - React Web Frontend
@@ -295,21 +305,21 @@ Track the implementation progress of all API endpoints across 10 categories.
 - [x] DELETE `/api/labels/:id` - Delete label
 - [x] POST `/api/labels/sync/:repoId` - Sync labels from GitHub
 
-#### 💬 5. Comment APIs (6 endpoints)
-- [ ] GET `/api/issues/:issueId/comments` - List comments
-- [ ] POST `/api/issues/:issueId/comments` - Create comment
-- [ ] GET `/api/comments/:id` - Get comment details
-- [ ] PUT `/api/comments/:id` - Update comment
-- [ ] DELETE `/api/comments/:id` - Delete comment
-- [ ] POST `/api/comments/:id/sync` - Sync comment with GitHub
+#### 💬 5. Comment APIs (6 endpoints) — ✅ Integrated into Issue APIs
+- [x] GET `/api/issues/:id/comments` - List all comments for an issue
+- [x] POST `/api/issues/:id/comments` - Add comment (syncs to GitHub)
+- [x] PATCH `/api/issues/:id/comments/:commentId` - Edit comment (syncs to GitHub)
+- [x] DELETE `/api/issues/:id/comments/:commentId` - Delete comment (syncs to GitHub)
+- [x] POST `/api/issues/:id/assign` - Assign/unassign users (syncs to GitHub)
+- [x] POST `/api/issues/:id/labels` - Add/remove labels (syncs to GitHub)
 
 #### 📂 6. Category APIs (6 endpoints)
-- [ ] GET `/api/categories` - List all categories
-- [ ] POST `/api/categories` - Create category
-- [ ] GET `/api/categories/:id` - Get category details
-- [ ] PUT `/api/categories/:id` - Update category
-- [ ] DELETE `/api/categories/:id` - Delete category
-- [ ] POST `/api/categories/:id/issues` - Assign issues to category
+- [x] GET `/api/categories` - List all categories (per user)
+- [x] POST `/api/categories` - Create category
+- [x] PATCH `/api/categories/:id` - Update category name/color
+- [x] DELETE `/api/categories/:id` - Delete category
+- [x] POST `/api/issues/:id/categories` - Assign categories to issue
+- [x] DELETE `/api/issues/:id/categories/:categoryId` - Remove category from issue
 
 #### 🔍 7. Filter & Views APIs (5 endpoints)
 - [ ] GET `/api/filters` - List all saved filters
@@ -357,13 +367,13 @@ Track the implementation progress of all API endpoints across 10 categories.
 | Repositories | 7 | 7 | 100% ✅ |
 | Issues | 12 | 12 | 100% ✅ |
 | Labels | 6 | 6 | 100% ✅ |
-| Comments | 6 | 0 | 0% |
-| Categories | 6 | 0 | 0% |
+| Comments | 6 | 6 | 100% ✅ |
+| Categories | 6 | 6 | 100% ✅ |
 | Filters & Views | 5 | 0 | 0% |
 | Analytics | 6 | 0 | 0% |
 | Notifications | 5 | 0 | 0% |
 | Additional | 12 | 0 | 0% |
-| **TOTAL** | **70** | **30** | **43%** |
+| **TOTAL** | **70** | **42** | **60%** |
 
 ---
 
@@ -402,9 +412,11 @@ Track the implementation progress of all API endpoints across 10 categories.
 - [x] Validation & error handling middleware
 - [x] Swagger/OpenAPI documentation
 
-### 📅 Phase 2: Advanced Features (PLANNED)
-- [ ] Comments & discussions
-- [ ] Categories & filters
+### ✅ Phase 2: Advanced Features (IN PROGRESS)
+- [x] Comments & discussions (GitHub-synced)
+- [x] Labels management (GitHub-synced)
+- [x] Custom categories & issue tagging
+- [ ] Filters & saved views
 - [ ] Analytics dashboard
 - [ ] Notifications system
 - [ ] Real-time updates

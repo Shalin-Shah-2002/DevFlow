@@ -4,11 +4,12 @@ GitHub Project Dashboard Backend API built with Node.js, Express, TypeScript, an
 
 ## ⚡ Project Status
 
-✅ **24 Endpoints Implemented** | ✅ **Swagger Documentation** | ✅ **Production Ready**
+✅ **30 Endpoints Implemented** | ✅ **Swagger Documentation** | ✅ **Production Ready**
 
 - 🔐 Authentication with GitHub OAuth & JWT
 - 📦 Complete Repository Management (7 endpoints)
 - 🎯 Full Issue Management System (12 endpoints)
+- 🏷️ Complete Label Management (6 endpoints)
 - 🔥 Interactive API Documentation (Swagger UI)
 - 🛡️ Security: Helmet, CORS, Rate Limiting
 - ✅ Input Validation & Error Handling
@@ -116,7 +117,7 @@ Access the interactive API documentation at **http://localhost:5000/api-docs** w
 - 🔥 Try out APIs directly from the browser
 - 📖 Complete request/response schemas
 - 🔐 Built-in authentication support
-- 📋 24 implemented endpoints across 3 categories
+- 📋 30 implemented endpoints across 4 categories
 
 ### Implemented Endpoints
 
@@ -149,6 +150,14 @@ Access the interactive API documentation at **http://localhost:5000/api-docs** w
 - `POST /api/issues/:id/comments` - Add comment
 - `PATCH /api/issues/:id/comments/:commentId` - Edit comment
 - `DELETE /api/issues/:id/comments/:commentId` - Delete comment
+
+#### 🏷️ Labels (6 endpoints)
+- `GET /api/repositories/:repoId/labels` - Get repository labels
+- `POST /api/repositories/:repoId/labels` - Create label
+- `PATCH /api/labels/:id` - Update label
+- `DELETE /api/labels/:id` - Delete label
+- `GET /api/labels` - Get all labels (across repos)
+- `GET /api/labels/popular` - Get most used labels
 
 ### Additional Documentation
 
@@ -202,7 +211,21 @@ sudo service postgresql restart
 
 ## 🆕 Recent Updates
 
-### v1.0.0 - Current Release
+### v1.1.0 - Current Release
+
+✅ **Completed Features:**
+- Full Label Management API (6 endpoints)
+  - Create, update, delete labels per repository
+  - List all labels across repositories
+  - Popular labels ranking
+  - Full GitHub sync
+
+- Full Comments API (6 endpoints within Issues)
+  - Get, add, edit, delete comments
+  - Assign users to issues
+  - Manage issue labels (add/remove/set)
+
+### v1.0.0
 
 ✅ **Completed Features:**
 - Full Issue Management API (12 endpoints)
@@ -218,7 +241,7 @@ sudo service postgresql restart
   - Improved debugging information
   
 - Complete Swagger Documentation
-  - All 24 endpoints documented
+  - All 30 endpoints documented
   - Interactive testing interface
   - Request/response schemas
   - Authentication integration

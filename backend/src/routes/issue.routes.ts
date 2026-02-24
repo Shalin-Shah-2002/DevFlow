@@ -1,5 +1,9 @@
 import { Router } from 'express';
 import { IssueController } from '../controllers/issue.controller';
+import {
+  assignCategoriesToIssue,
+  removeCategoryFromIssue,
+} from '../controllers/category.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { body, param, query } from 'express-validator';
 import { validate } from '../middleware/validation.middleware';
@@ -231,14 +235,34 @@ router.post(
  * @desc    Add categories to issue
  * @access  Private
  */
+/**
+ * @route   POST /api/issues/:id/categories
+ * @desc    Assign categories to issue  (5.5)
+ * @access  Private
+ */
 router.post(
   '/:id/categories',
   [
     param('id').isString().notEmpty(),
-    body('categoryIds').isArray({ min: 1 }).withMessage('Category IDs must be an array'),
+    body('categoryIds').isArray({ min: 1 }).withMessage('Category IDs must be a non-empty array'),
     validate,
   ],
-  IssueController.addCategories
+  assignCategoriesToIssue
+);
+
+/**
+ * @route   DELETE /api/issues/:id/categories/:categoryId
+ * @desc    Remove category from issue  (5.6)
+ * @access  Private
+ */
+router.delete(
+  '/:id/categories/:categoryId',
+  [
+    param('id').isString().notEmpty(),
+    param('categoryId').isString().notEmpty(),
+    validate,
+  ],
+  removeCategoryFromIssue
 );
 
 export default router;
