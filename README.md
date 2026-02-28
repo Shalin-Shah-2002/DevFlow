@@ -2,6 +2,7 @@
 
 ![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)
 ![Status](https://img.shields.io/badge/status-in%20development-yellow.svg)
+![API Progress](https://img.shields.io/badge/API%20progress-53%2F70%20(76%25)-orange.svg)
 ![License](https://img.shields.io/badge/license-ISC-green.svg)
 
 ## 📋 Table of Contents
@@ -78,6 +79,20 @@
 - Conflict detection (duplicate names)
 - Issue count per category
 
+✅ **Saved Views & Filters** (100%)
+- Save custom filter combinations as named views
+- Mark a view as default
+- Apply a view to instantly retrieve matching issues
+- Full CRUD (create, update, delete views)
+
+✅ **Analytics Dashboard** (100%)
+- Dashboard overview: totals, priority breakdown, close rate
+- Issues grouped by state and custom workflow status
+- Issues grouped by repository
+- Daily timeline of created vs closed issues (7d / 30d / 90d / 1y)
+- Assignee workload distribution
+- Completion rate overall and per repository
+
 ✅ **Developer Experience**
 - 🔥 Interactive Swagger UI at `/api-docs`
 - 📋 Complete OpenAPI 3.0 specification
@@ -88,16 +103,14 @@
 
 ### 📊 Current Status
 
-- **36 API endpoints** implemented and fully functional
+- **53 API endpoints** implemented and fully functional
 - **18 database tables** with complete relationships
-- **5 major API categories** completed (Auth, Repos, Issues, Labels, Categories)
+- **7 major API categories** completed (Auth, Repos, Issues, Labels, Categories, Views, Analytics)
 - **Swagger documentation** for all endpoints
 - **Production-ready** backend infrastructure
 
 ### 🚧 Coming Next
 
-- Filters & Views API (5 endpoints)
-- Analytics Dashboard (6 endpoints)
 - Notifications System (5 endpoints)
 - React Web Frontend
 - Flutter Mobile App
@@ -221,9 +234,9 @@ DevFlow/
    ```
 
 6. **Access the application**
-   - 🌐 Server: http://localhost:5000
-   - 🔥 Swagger UI: http://localhost:5000/api-docs
-   - 🏥 Health Check: http://localhost:5000/api/health
+   - 🌐 Server: http://localhost:3001
+   - 🔥 Swagger UI: http://localhost:3001/api-docs
+   - 🏥 Health Check: http://localhost:3001/api/health
 
 📖 **For detailed setup instructions, see [QUICK_START.md](QUICK_START.md)**
 
@@ -234,7 +247,7 @@ DevFlow/
 ### Option 1: Swagger UI (Recommended)
 
 1. Start the server: `npm run dev`
-2. Open http://localhost:5000/api-docs in your browser
+2. Open http://localhost:3001/api-docs in your browser
 3. Click "Authorize" and enter your JWT token
 4. Try out any endpoint with the "Try it out" button
 
@@ -248,15 +261,15 @@ DevFlow/
 
 ```bash
 # Health check
-curl http://localhost:5000/api/health
+curl http://localhost:3001/api/health
 
 # Get current user (requires auth)
 curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  http://localhost:5000/api/auth/me
+  http://localhost:3001/api/auth/me
 
 # List issues
 curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  http://localhost:5000/api/issues?state=open&page=1&limit=20
+  http://localhost:3001/api/issues?state=open&page=1&limit=20
 ```
 
 ---
@@ -322,19 +335,19 @@ Track the implementation progress of all API endpoints across 10 categories.
 - [x] DELETE `/api/issues/:id/categories/:categoryId` - Remove category from issue
 
 #### 🔍 7. Filter & Views APIs (5 endpoints)
-- [ ] GET `/api/filters` - List all saved filters
-- [ ] POST `/api/filters` - Create custom filter
-- [ ] GET `/api/filters/:id` - Get filter details
-- [ ] PUT `/api/filters/:id` - Update filter
-- [ ] DELETE `/api/filters/:id` - Delete filter
+- [x] GET `/api/views` - List all saved views/filters
+- [x] POST `/api/views` - Create custom view/filter
+- [x] PATCH `/api/views/:id` - Update view/filter
+- [x] DELETE `/api/views/:id` - Delete view/filter
+- [x] POST `/api/views/:id/apply` - Apply view (get filtered issues)
 
 #### 📊 8. Analytics APIs (6 endpoints)
-- [ ] GET `/api/analytics/dashboard` - Dashboard overview
-- [ ] GET `/api/analytics/issues-by-status` - Issues by status
-- [ ] GET `/api/analytics/issues-by-repo` - Issues by repository
-- [ ] GET `/api/analytics/issues-over-time` - Timeline trends
-- [ ] GET `/api/analytics/assignee-workload` - Workload distribution
-- [ ] GET `/api/analytics/completion-rate` - Completion metrics
+- [x] GET `/api/analytics/dashboard` - Dashboard overview (totals, priority breakdown, close rate)
+- [x] GET `/api/analytics/issues-by-status` - Issues grouped by state & custom status
+- [x] GET `/api/analytics/issues-by-repo` - Issues grouped by repository
+- [x] GET `/api/analytics/issues-over-time` - Daily timeline of created vs closed (`?period=7d|30d|90d|1y`)
+- [x] GET `/api/analytics/assignee-workload` - Open/closed counts per assignee
+- [x] GET `/api/analytics/completion-rate` - Completion rate overall and per repository
 
 #### 🔔 9. Notification APIs (5 endpoints)
 - [ ] GET `/api/notifications` - List notifications
@@ -369,11 +382,11 @@ Track the implementation progress of all API endpoints across 10 categories.
 | Labels | 6 | 6 | 100% ✅ |
 | Comments | 6 | 6 | 100% ✅ |
 | Categories | 6 | 6 | 100% ✅ |
-| Filters & Views | 5 | 0 | 0% |
-| Analytics | 6 | 0 | 0% |
-| Notifications | 5 | 0 | 0% |
-| Additional | 12 | 0 | 0% |
-| **TOTAL** | **70** | **42** | **60%** |
+| Filters & Views | 5 | 5 | 100% ✅ |
+| Analytics | 6 | 6 | 100% ✅ |
+| Notifications | 5 | 0 | 0% 🔲 |
+| Additional | 12 | 0 | 0% 🔲 |
+| **TOTAL** | **70** | **53** | **76%** |
 
 ---
 
@@ -384,8 +397,8 @@ Track the implementation progress of all API endpoints across 10 categories.
 - 🗺️ [Project Roadmap](ROADMAP.md) - Implementation phases and timeline
 - 🔧 [Setup Guide](SETUP_GUIDE.md) - Detailed setup instructions
 - 🔌 [API Documentation](backend/Docs/API_DOCUMENTATION.md) - Complete API reference (70 endpoints)
-- 🔥 [Swagger UI](http://localhost:5000/api-docs) - Interactive API testing (when server is running)
-- 📋 [OpenAPI Spec](http://localhost:5000/api-docs.json) - Machine-readable API specification
+- 🔥 [Swagger UI](http://localhost:3001/api-docs) - Interactive API testing (when server is running)
+- 📋 [OpenAPI Spec](http://localhost:3001/api-docs.json) - Machine-readable API specification
 - 📮 [Postman Collection](backend/Docs/Postman_Collection.json) - Ready-to-use API collection
 - 🗄️ [Database Schema](backend/Docs/SCHEMA_EXPLAINED.md) - Database design and relationships
 - 💾 [Database Setup](backend/Docs/DATABASE_SETUP.md) - PostgreSQL configuration
@@ -416,8 +429,8 @@ Track the implementation progress of all API endpoints across 10 categories.
 - [x] Comments & discussions (GitHub-synced)
 - [x] Labels management (GitHub-synced)
 - [x] Custom categories & issue tagging
-- [ ] Filters & saved views
-- [ ] Analytics dashboard
+- [x] Filters & saved views (5 endpoints)
+- [x] Analytics dashboard (6 endpoints)
 - [ ] Notifications system
 - [ ] Real-time updates
 
