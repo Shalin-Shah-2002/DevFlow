@@ -18,8 +18,8 @@ const swaggerDefinition = {
   },
   servers: [
     {
-      url: 'http://localhost:5000',
-      description: 'Development server',
+      url: '/',
+      description: 'Current server',
     },
     {
       url: 'https://api.devflow.com',
