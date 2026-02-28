@@ -1,4 +1,6 @@
 // ─── Entry Point ───────────────────────────────────────────────────────────
+// logger MUST be the first import so the console override applies project-wide
+import './config/logger';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -12,6 +14,7 @@ import issueRoutes from './routes/issue.routes';
 import labelRoutes from './routes/label.routes';
 import categoryRoutes from './routes/category.routes';
 import viewsRoutes from './routes/views.routes';
+import analyticsRoutes from './routes/analytics.routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
 
@@ -108,6 +111,7 @@ app.use('/api/issues', issueRoutes);
 app.use('/api/labels', labelRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/views', viewsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // 404 Handler
 app.use(notFoundHandler);
@@ -135,6 +139,7 @@ app.listen(PORT, () => {
   ✅ Labels endpoints ready! (6 endpoints)
   ✅ Categories endpoints ready! (6 endpoints)
   ✅ Views/Filters endpoints ready! (5 endpoints)
+  ✅ Analytics endpoints ready! (6 endpoints)
   
 `);
 });
