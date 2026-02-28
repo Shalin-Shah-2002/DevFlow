@@ -1,3 +1,4 @@
+// ─── Entry Point ───────────────────────────────────────────────────────────
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -10,7 +11,9 @@ import repositoryRoutes from './routes/repository.routes';
 import issueRoutes from './routes/issue.routes';
 import labelRoutes from './routes/label.routes';
 import categoryRoutes from './routes/category.routes';
+import viewsRoutes from './routes/views.routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
+
 
 // Load environment variables
 dotenv.config();
@@ -104,6 +107,7 @@ app.use('/api/repositories', repositoryRoutes);
 app.use('/api/issues', issueRoutes);
 app.use('/api/labels', labelRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/views', viewsRoutes);
 
 // 404 Handler
 app.use(notFoundHandler);
@@ -130,6 +134,7 @@ app.listen(PORT, () => {
   ✅ Issues endpoints ready! (12 endpoints)
   ✅ Labels endpoints ready! (6 endpoints)
   ✅ Categories endpoints ready! (6 endpoints)
+  ✅ Views/Filters endpoints ready! (5 endpoints)
   
 `);
 });

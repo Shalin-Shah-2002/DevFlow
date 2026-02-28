@@ -18,8 +18,8 @@ const swaggerDefinition = {
   },
   servers: [
     {
-      url: 'http://localhost:5000',
-      description: 'Development server',
+      url: '/',
+      description: 'Current server',
     },
     {
       url: 'https://api.devflow.com',
@@ -118,6 +118,10 @@ const swaggerDefinition = {
     {
       name: 'Categories',
       description: 'Custom category management endpoints',
+    },
+    {
+      name: 'Views',
+      description: 'Saved view management and filtering endpoints',
     },
     {
       name: 'Filters',
