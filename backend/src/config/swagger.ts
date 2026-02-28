@@ -120,6 +120,10 @@ const swaggerDefinition = {
       description: 'Custom category management endpoints',
     },
     {
+      name: 'Views',
+      description: 'Saved view management and filtering endpoints',
+    },
+    {
       name: 'Filters',
       description: 'Filter and view management endpoints',
     },
