@@ -4,12 +4,16 @@ GitHub Project Dashboard Backend API built with Node.js, Express, TypeScript, an
 
 ## ⚡ Project Status
 
-✅ **30 Endpoints Implemented** | ✅ **Swagger Documentation** | ✅ **Production Ready**
+✅ **54 Endpoints Implemented** | ✅ **Swagger Documentation** | ✅ **Production Ready**
 
 - 🔐 Authentication with GitHub OAuth & JWT
 - 📦 Complete Repository Management (7 endpoints)
 - 🎯 Full Issue Management System (12 endpoints)
 - 🏷️ Complete Label Management (6 endpoints)
+- 🗂️ Category Management (6 endpoints)
+- 🔍 Saved Views & Filters (5 endpoints)
+- 📊 Analytics & Insights (6 endpoints)
+- 🔔 Notification System (7 endpoints)
 - 🔥 Interactive API Documentation (Swagger UI)
 - 🛡️ Security: Helmet, CORS, Rate Limiting
 - ✅ Input Validation & Error Handling
@@ -17,9 +21,9 @@ GitHub Project Dashboard Backend API built with Node.js, Express, TypeScript, an
 ## 🎯 Quick Links
 
 Once running, access:
-- **Swagger UI**: http://localhost:5000/api-docs
-- **OpenAPI JSON**: http://localhost:5000/api-docs.json
-- **Health Check**: http://localhost:5000/api/health
+- **Swagger UI**: http://localhost:3001/api-docs
+- **OpenAPI JSON**: http://localhost:3001/api-docs.json
+- **Health Check**: http://localhost:3001/api/health
 
 ## 🚀 Quick Start
 
@@ -58,16 +62,16 @@ Once running, access:
    npm run dev
    ```
 
-Server will start at `http://localhost:5000`
+Server will start at `http://localhost:3001`
 
 ## 🎯 Quick Access
 
 Once the server is running:
 
-- **🏠 Server**: http://localhost:5000
-- **🔥 Swagger UI**: http://localhost:5000/api-docs (Interactive API documentation)
-- **📋 OpenAPI JSON**: http://localhost:5000/api-docs.json
-- **🏥 Health Check**: http://localhost:5000/api/health
+- **🏠 Server**: http://localhost:3001
+- **🔥 Swagger UI**: http://localhost:3001/api-docs (Interactive API documentation)
+- **📋 OpenAPI JSON**: http://localhost:3001/api-docs.json
+- **🏥 Health Check**: http://localhost:3001/api/health
 
 ## 📝 Available Scripts
 
@@ -83,18 +87,51 @@ Once the server is running:
 ```
 backend/
 ├── src/
-│   ├── controllers/     # Request handlers
-│   ├── routes/         # API routes
-│   ├── services/       # Business logic
-│   ├── middleware/     # Custom middleware
-│   ├── utils/          # Helper functions
-│   └── index.ts        # App entry point
+│   ├── controllers/
+│   │   ├── auth.controller.ts
+│   │   ├── repository.controller.ts
+│   │   ├── issue.controller.ts
+│   │   ├── label.controller.ts
+│   │   ├── category.controller.ts
+│   │   ├── views.controller.ts
+│   │   ├── analytics.controller.ts
+│   │   └── notification.controller.ts
+│   ├── routes/
+│   │   ├── auth.routes.ts
+│   │   ├── repository.routes.ts
+│   │   ├── issue.routes.ts
+│   │   ├── label.routes.ts
+│   │   ├── category.routes.ts
+│   │   ├── views.routes.ts
+│   │   ├── analytics.routes.ts
+│   │   └── notification.routes.ts
+│   ├── services/
+│   │   ├── auth.service.ts
+│   │   ├── repository.service.ts
+│   │   ├── issue.service.ts
+│   │   ├── label.service.ts
+│   │   ├── category.service.ts
+│   │   ├── views.service.ts
+│   │   ├── analytics.service.ts
+│   │   └── notification.service.ts
+│   ├── models/
+│   │   ├── auth.model.ts
+│   │   ├── issue.model.ts
+│   │   ├── label.model.ts
+│   │   ├── repository.model.ts
+│   │   ├── user.model.ts
+│   │   └── notification.model.ts
+│   ├── middleware/
+│   │   ├── auth.middleware.ts
+│   │   ├── error.middleware.ts
+│   │   └── validation.middleware.ts
+│   └── index.ts                # App entry point
 ├── prisma/
-│   └── schema.prisma   # Database schema
-├── .env                # Environment variables (not committed)
-├── .env.example        # Environment template
-├── tsconfig.json       # TypeScript config
-└── package.json        # Dependencies
+│   └── schema.prisma           # Database schema
+├── .env                        # Environment variables (not committed)
+├── .env.example                # Environment template
+├── tsconfig.json               # TypeScript config
+└── package.json                # Dependencies
 ```
 
 ## 🔐 Environment Variables
@@ -111,13 +148,13 @@ Key variables:
 
 ### Interactive Documentation (Swagger UI)
 
-Access the interactive API documentation at **http://localhost:5000/api-docs** when the server is running.
+Access the interactive API documentation at **http://localhost:3001/api-docs** when the server is running.
 
 **Features:**
 - 🔥 Try out APIs directly from the browser
 - 📖 Complete request/response schemas
 - 🔐 Built-in authentication support
-- 📋 30 implemented endpoints across 4 categories
+- 📋 54 implemented endpoints across 8 categories
 
 ### Implemented Endpoints
 
@@ -138,14 +175,14 @@ Access the interactive API documentation at **http://localhost:5000/api-docs** w
 - `POST /api/repositories/:id/webhook` - Setup webhook
 
 #### 🎯 Issues (12 endpoints)
-- `GET /api/issues` - List issues with filters
-- `GET /api/issues/:id` - Get single issue
+- `GET /api/issues` - List issues with filters (`state`, `priority`, `label`, `search`, `sort`, `page`, `limit`)
+- `GET /api/issues/:id` - Get single issue with details
 - `POST /api/issues` - Create issue
 - `PATCH /api/issues/:id` - Update issue
 - `DELETE /api/issues/:id` - Close issue
-- `POST /api/issues/bulk` - Bulk operations
+- `POST /api/issues/bulk` - Bulk operations (close, label, assign, priority, category)
 - `POST /api/issues/:id/assign` - Assign users
-- `POST /api/issues/:id/labels` - Manage labels
+- `POST /api/issues/:id/labels` - Add/remove/set labels
 - `GET /api/issues/:id/comments` - Get comments
 - `POST /api/issues/:id/comments` - Add comment
 - `PATCH /api/issues/:id/comments/:commentId` - Edit comment
@@ -156,8 +193,40 @@ Access the interactive API documentation at **http://localhost:5000/api-docs** w
 - `POST /api/repositories/:repoId/labels` - Create label
 - `PATCH /api/labels/:id` - Update label
 - `DELETE /api/labels/:id` - Delete label
-- `GET /api/labels` - Get all labels (across repos)
+- `GET /api/labels` - Get all labels across repos
 - `GET /api/labels/popular` - Get most used labels
+
+#### 🗂️ Categories (6 endpoints)
+- `GET /api/categories` - Get all user categories
+- `POST /api/categories` - Create category
+- `PATCH /api/categories/:id` - Update category
+- `DELETE /api/categories/:id` - Delete category
+- `POST /api/issues/:id/categories` - Assign categories to issue
+- `DELETE /api/issues/:id/categories/:categoryId` - Remove category from issue
+
+#### 🔍 Saved Views & Filters (5 endpoints)
+- `GET /api/views` - Get all saved views
+- `POST /api/views` - Create a saved view (with filter preset)
+- `PATCH /api/views/:id` - Update saved view
+- `DELETE /api/views/:id` - Delete saved view
+- `POST /api/views/:id/apply` - Apply view (returns filtered issues)
+
+#### 📊 Analytics (6 endpoints)
+- `GET /api/analytics/dashboard` - Dashboard overview (totals, priorities)
+- `GET /api/analytics/issues-by-status` - Issues grouped by state & custom status
+- `GET /api/analytics/issues-by-repo` - Issues grouped by repository
+- `GET /api/analytics/issues-over-time` - Timeline chart (created vs closed)
+- `GET /api/analytics/assignee-workload` - Workload per assignee
+- `GET /api/analytics/completion-rate` - Completion rate overall & per repo
+
+#### 🔔 Notifications (7 endpoints)
+- `GET /api/notifications` - Get notifications (`?isRead=`, `?type=`, `?page=`, `?limit=`)
+- `GET /api/notifications/unread-count` - Get unread badge count
+- `GET /api/notifications/:id` - Get single notification
+- `PATCH /api/notifications/:id/read` - Mark notification as read
+- `PATCH /api/notifications/read-all` - Mark all notifications as read
+- `DELETE /api/notifications/:id` - Delete a notification
+- `DELETE /api/notifications/read` - Delete all read notifications
 
 ### Additional Documentation
 
@@ -211,52 +280,52 @@ sudo service postgresql restart
 
 ## 🆕 Recent Updates
 
-### v1.1.0 - Current Release
+### v1.3.0 - Current Release
 
-✅ **Completed Features:**
-- Full Label Management API (6 endpoints)
-  - Create, update, delete labels per repository
-  - List all labels across repositories
-  - Popular labels ranking
-  - Full GitHub sync
+✅ **Notification System (7 endpoints)**
+- Get all notifications with filters (isRead, type, pagination)
+- Unread count for badge display
+- Mark single or all notifications as read
+- Delete single or all read notifications
+- Tested and verified all endpoints ✅
 
-- Full Comments API (6 endpoints within Issues)
-  - Get, add, edit, delete comments
-  - Assign users to issues
-  - Manage issue labels (add/remove/set)
+### v1.2.0
+
+✅ **Analytics API (6 endpoints)**
+- Dashboard overview with totals and priority breakdown
+- Issues grouped by status and custom status
+- Issues grouped by repository with open/closed counts
+- 30-day timeline chart (created vs closed)
+- Assignee workload distribution
+- Completion rate overall and per repository
+
+✅ **Saved Views & Filters API (5 endpoints)**
+- Create named filter presets (state, priority, label, repo, search, sort)
+- Update and delete saved views
+- Apply a saved view to get filtered issues with pagination
+- Support for default view setting
+
+### v1.1.0
+
+✅ **Category Management (6 endpoints)**
+- Create, update, delete user categories with hex color
+- Assign categories to issues
+- Remove categories from issues
+
+✅ **Full Comments API (built into Issues)**
+- Get, add, edit, delete comments
+- Assign users to issues
+- Manage issue labels (add/remove/set)
 
 ### v1.0.0
 
-✅ **Completed Features:**
+✅ **Foundation**
 - Full Issue Management API (12 endpoints)
-  - Create, read, update, close issues
-  - Advanced filtering and pagination
-  - Bulk operations support
-  - Comment CRUD operations
-  - Label and assignee management
-  
-- Enhanced Error Handling
-  - Detailed GitHub API error messages
-  - 422 validation error specifics
-  - Improved debugging information
-  
-- Complete Swagger Documentation
-  - All 30 endpoints documented
-  - Interactive testing interface
-  - Request/response schemas
-  - Authentication integration
-
-- Improved GitHub Integration
-  - Better data cleaning before API calls
-  - Validation for assignees and labels
-  - Detailed error messages for API failures
-  - Optimized sync operations
-
-**Bug Fixes:**
-- Fixed TypeScript BigInt conversion issues
-- Resolved ts-node type declaration loading
-- Fixed Swagger UI caching issues
-- Improved GitHub 422 error handling with detailed messages
+- Label Management API (6 endpoints)
+- Repository Management API (7 endpoints)
+- GitHub OAuth + JWT Authentication (5 endpoints)
+- Swagger UI with all endpoints documented
+- Helmet, CORS, Rate Limiting, Input Validation
 
 ## 🧪 Testing
 
