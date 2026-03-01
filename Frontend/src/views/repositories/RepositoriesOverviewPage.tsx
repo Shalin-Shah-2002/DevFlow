@@ -182,6 +182,10 @@ export const RepositoriesOverviewPage = () => {
             <h2>Repositories Overview</h2>
             <p>Manage connected repositories, sync issues, and maintain webhook integrations.</p>
           </div>
+          <div className="repos-head-hint">
+            <strong>{repositories.length}</strong>
+            <span>Repositories in current view</span>
+          </div>
         </header>
 
         <section className="repos-summary">
@@ -205,17 +209,24 @@ export const RepositoriesOverviewPage = () => {
 
         <section className="repos-add-card">
           <h3>Add Repository</h3>
+          <p className="repos-subtext">Connect a GitHub repository URL and optionally group it.</p>
           <div className="repos-add-grid">
-            <input
-              value={newRepoUrl}
-              onChange={(event) => setNewRepoUrl(event.target.value)}
-              placeholder="https://github.com/owner/repo"
-            />
-            <input
-              value={newRepoGroup}
-              onChange={(event) => setNewRepoGroup(event.target.value)}
-              placeholder="Group (optional)"
-            />
+            <label className="repos-field">
+              <span>Repository URL</span>
+              <input
+                value={newRepoUrl}
+                onChange={(event) => setNewRepoUrl(event.target.value)}
+                placeholder="https://github.com/owner/repo"
+              />
+            </label>
+            <label className="repos-field">
+              <span>Group</span>
+              <input
+                value={newRepoGroup}
+                onChange={(event) => setNewRepoGroup(event.target.value)}
+                placeholder="Optional"
+              />
+            </label>
             <button type="button" disabled={actionBusyId === 'add'} onClick={() => void handleAddRepository()}>
               {actionBusyId === 'add' ? 'Adding...' : 'Add Repository'}
             </button>
@@ -224,23 +235,34 @@ export const RepositoriesOverviewPage = () => {
 
         <section className="repos-content-grid">
           <div className="repos-list-card">
+            <div className="repos-section-title">
+              <h3>Repository List</h3>
+              <span>Select one repository to view full details</span>
+            </div>
+
             <div className="repos-toolbar">
-              <input
-                value={search}
-                onChange={(event) => {
-                  setLoadingList(true);
-                  setSearch(event.target.value);
-                }}
-                placeholder="Search repositories"
-              />
-              <input
-                value={group}
-                onChange={(event) => {
-                  setLoadingList(true);
-                  setGroup(event.target.value);
-                }}
-                placeholder="Filter by group"
-              />
+              <label className="repos-field compact">
+                <span>Search</span>
+                <input
+                  value={search}
+                  onChange={(event) => {
+                    setLoadingList(true);
+                    setSearch(event.target.value);
+                  }}
+                  placeholder="Repository name"
+                />
+              </label>
+              <label className="repos-field compact">
+                <span>Group</span>
+                <input
+                  value={group}
+                  onChange={(event) => {
+                    setLoadingList(true);
+                    setGroup(event.target.value);
+                  }}
+                  placeholder="Filter by group"
+                />
+              </label>
               <button type="button" onClick={() => void refreshList()}>
                 Refresh
               </button>
@@ -259,6 +281,14 @@ export const RepositoriesOverviewPage = () => {
                     key={repo.id}
                     className={repo.id === selectedRepositoryId ? 'repo-item selected' : 'repo-item'}
                     onClick={() => setSelectedRepositoryId(repo.id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setSelectedRepositoryId(repo.id);
+                      }
+                    }}
                   >
                     <div>
                       <h4>{repo.fullName}</h4>
@@ -281,7 +311,7 @@ export const RepositoriesOverviewPage = () => {
                           void handleSync(repo.id);
                         }}
                       >
-                        Sync
+                        Sync Now
                       </button>
                       <button
                         type="button"
@@ -291,7 +321,7 @@ export const RepositoriesOverviewPage = () => {
                           void handleWebhook(repo.id);
                         }}
                       >
-                        Webhook
+                        Setup Webhook
                       </button>
                       <button
                         type="button"
@@ -312,6 +342,11 @@ export const RepositoriesOverviewPage = () => {
           </div>
 
           <aside className="repos-detail-card">
+            <div className="repos-section-title">
+              <h3>Repository Details</h3>
+              <span>Selected repository insights and health</span>
+            </div>
+
             {loadingDetails && <div className="repos-info">Loading repository details...</div>}
 
             {!loadingDetails && !selectedDetails && (

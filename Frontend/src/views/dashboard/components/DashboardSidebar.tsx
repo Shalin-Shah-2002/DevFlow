@@ -50,12 +50,19 @@ export const DashboardSidebar = ({ unreadCount = 0, authState }: SidebarProps) =
         </Link>
 
         <span className="dv3-nav-title">Insights</span>
-        <a href="#">Saved Views</a>
-        <a href="#">Analytics</a>
-        <a href="#" className="notify-link">
+        <Link className={isActive(location.pathname, '/app/views') ? 'active' : ''} to="/app/views">
+          Saved Views
+        </Link>
+        <Link className={isActive(location.pathname, '/app/analytics') ? 'active' : ''} to="/app/analytics">
+          Analytics
+        </Link>
+        <Link className={isActive(location.pathname, '/app/notifications') ? 'active notify-link' : 'notify-link'} to="/app/notifications">
           Notifications
           <span>{unreadCount}</span>
-        </a>
+        </Link>
+        <Link className={isActive(location.pathname, '/app/ops') ? 'active' : ''} to="/app/ops">
+          Ops Tools
+        </Link>
       </nav>
 
       <div className="dv3-profile">

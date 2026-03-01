@@ -11,6 +11,10 @@ import { IssueDetailPage } from './views/issues/IssueDetailPage';
 import { RepositoriesOverviewPage } from './views/repositories/RepositoriesOverviewPage';
 import { LabelsManagementPage } from './views/labels/LabelsManagementPage';
 import { CategoriesManagementPage } from './views/categories/CategoriesManagementPage';
+import { NotificationsPage } from './views/notifications/NotificationsPage';
+import { SavedViewsPage } from './views/views/SavedViewsPage';
+import { AnalyticsPage } from './views/analytics/AnalyticsPage';
+import { OpsToolsPage } from './views/ops/OpsToolsPage';
 import './styles/landing.css';
 import './styles/auth.css';
 import './styles/dashboard.css';
@@ -69,6 +73,38 @@ function App() {
         element={
           <ProtectedRoute>
             <CategoriesManagementPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/views"
+        element={
+          <ProtectedRoute>
+            <SavedViewsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/analytics"
+        element={
+          <ProtectedRoute>
+            <AnalyticsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/ops"
+        element={
+          <ProtectedRoute>
+            <OpsToolsPage />
           </ProtectedRoute>
         }
       />

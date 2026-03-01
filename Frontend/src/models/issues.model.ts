@@ -8,6 +8,7 @@ export type IssueListItem = {
   customStatus?: string;
   commentsCount: number;
   labels: { id: string; name: string; color?: string }[];
+  categories?: { id: string; name: string; color?: string }[];
   assignees: { id: string; name?: string; avatar?: string; githubLogin: string }[];
   repository: { id: string; name: string; fullName: string };
   githubUpdatedAt?: string;
@@ -49,6 +50,31 @@ export type IssueListResponse = {
 export type IssueDetailResponse = {
   success: boolean;
   data: IssueDetailItem;
+};
+
+export type IssueUpdatePayload = {
+  priority?: 'P0' | 'P1' | 'P2' | 'P3';
+  customStatus?: string;
+};
+
+export type IssueCreatePayload = {
+  repositoryId: string;
+  title: string;
+  body?: string;
+  priority?: 'P0' | 'P1' | 'P2' | 'P3';
+  customStatus?: string;
+};
+
+export type IssueCreateResponse = {
+  success: boolean;
+  message?: string;
+  data: IssueDetailItem;
+};
+
+export type IssueCommentCreateResponse = {
+  success: boolean;
+  message?: string;
+  data: IssueComment;
 };
 
 export type IssuesListQuery = {

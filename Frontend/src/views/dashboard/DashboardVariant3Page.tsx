@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Bar, BarChart, Cell, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { getDashboardVariant3Data } from '../../controllers/dashboard.controller';
@@ -31,6 +32,7 @@ const trendClass = (trend: 'up' | 'down') => (trend === 'up' ? 'trend up' : 'tre
 
 export const DashboardVariant3Page = () => {
   const { state } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState<DashboardViewModel>(dashboardFallbackData);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -83,7 +85,7 @@ export const DashboardVariant3Page = () => {
             <button className="icon-btn" type="button" aria-label="Notifications">
               •
             </button>
-            <button className="new-btn" type="button">
+            <button className="new-btn" type="button" onClick={() => navigate('/app/issues?new=1')}>
               + New Issue
             </button>
           </div>
