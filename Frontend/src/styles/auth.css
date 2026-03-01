@@ -1,0 +1,269 @@
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  padding: 24px;
+}
+
+.login-variant-1-page {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(29, 79, 215, 0.08), transparent 40%),
+    linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.login-v1-shell {
+  width: min(100%, 980px);
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 30px 60px -20px rgba(2, 6, 23, 0.2);
+}
+
+.login-v1-panel {
+  background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+  padding: 44px;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-v1-logo-wrap {
+  margin-bottom: 6px;
+}
+
+.login-v1-badge {
+  margin: 0;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #1d4fd7;
+  background: #dbeafe;
+}
+
+.login-v1-panel h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 38px;
+  line-height: 1.12;
+}
+
+.login-v1-copy {
+  margin: 0;
+  color: #64748b;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.login-v1-points {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-v1-points li {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-v1-points li::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #1d4fd7;
+  flex-shrink: 0;
+}
+
+.login-card {
+  width: min(100%, 460px);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-v1-card {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 44px;
+  justify-content: center;
+}
+
+.login-v1-card h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.login-v1-subtitle {
+  margin: 0;
+  color: #64748b;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.login-logo-wrap {
+  margin-bottom: 6px;
+}
+
+.login-card h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.2;
+  color: #0f172a;
+}
+
+.login-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.login-button {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.login-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.login-error {
+  margin-top: 6px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  color: #b91c1c;
+  font-size: 14px;
+}
+
+.login-error button {
+  background: transparent;
+  border: 0;
+  color: #991b1b;
+  font-weight: 600;
+  padding: 0;
+}
+
+.login-v1-footer-text {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.login-v1-footer-text a {
+  color: #1d4fd7;
+  font-weight: 600;
+}
+
+.login-v1-footer-text a:hover {
+  color: #183fb0;
+}
+
+.auth-status {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  color: #475569;
+  font-size: 16px;
+  padding: 24px;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 48px 24px;
+  background: #f8fafc;
+}
+
+.app-shell-header,
+.app-shell-body {
+  width: min(100%, 980px);
+  margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.app-shell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.app-shell-header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #0f172a;
+}
+
+.app-shell-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.app-shell-body {
+  margin-top: 16px;
+}
+
+.app-shell-body h2 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.app-shell-body p {
+  margin: 10px 0 20px;
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .login-v1-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .login-v1-panel {
+    border-right: 0;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 30px 24px;
+  }
+
+  .login-v1-card {
+    padding: 30px 24px;
+  }
+
+  .login-v1-panel h1 {
+    font-size: 30px;
+  }
+}

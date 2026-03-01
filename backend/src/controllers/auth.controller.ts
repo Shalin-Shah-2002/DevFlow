@@ -30,6 +30,11 @@ import {
  */
 
 export class AuthController {
+  private static getFrontendUrl(): string {
+    const rawUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    return rawUrl.replace(/\/$/, '');
+  }
+
   /**
    * @swagger
    * /api/auth/github:
@@ -136,13 +141,13 @@ export class AuthController {
       const jwtToken = AuthService.generateJWT(user.id, user.email, user.githubId);
 
       // Redirect to frontend with token
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = AuthController.getFrontendUrl();
       res.redirect(`${frontendUrl}/auth/success?token=${jwtToken}`);
     } catch (error) {
       console.error('Error in GitHub callback:', error);
       
       // Redirect to frontend with error
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = AuthController.getFrontendUrl();
       const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
       res.redirect(`${frontendUrl}/auth/error?message=${encodeURIComponent(errorMessage)}`);
     }

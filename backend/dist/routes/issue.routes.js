@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const issue_controller_1 = require("../controllers/issue.controller");
+const category_controller_1 = require("../controllers/category.controller");
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const express_validator_1 = require("express-validator");
 const validation_middleware_1 = require("../middleware/validation.middleware");
@@ -170,9 +171,24 @@ router.post('/:id/labels', [
  * @desc    Add categories to issue
  * @access  Private
  */
+/**
+ * @route   POST /api/issues/:id/categories
+ * @desc    Assign categories to issue  (5.5)
+ * @access  Private
+ */
 router.post('/:id/categories', [
     (0, express_validator_1.param)('id').isString().notEmpty(),
-    (0, express_validator_1.body)('categoryIds').isArray({ min: 1 }).withMessage('Category IDs must be an array'),
+    (0, express_validator_1.body)('categoryIds').isArray({ min: 1 }).withMessage('Category IDs must be a non-empty array'),
     validation_middleware_1.validate,
-], issue_controller_1.IssueController.addCategories);
+], category_controller_1.assignCategoriesToIssue);
+/**
+ * @route   DELETE /api/issues/:id/categories/:categoryId
+ * @desc    Remove category from issue  (5.6)
+ * @access  Private
+ */
+router.delete('/:id/categories/:categoryId', [
+    (0, express_validator_1.param)('id').isString().notEmpty(),
+    (0, express_validator_1.param)('categoryId').isString().notEmpty(),
+    validation_middleware_1.validate,
+], category_controller_1.removeCategoryFromIssue);
 exports.default = router;

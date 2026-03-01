@@ -3,6 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// ─── Entry Point ───────────────────────────────────────────────────────────
+// logger MUST be the first import so the console override applies project-wide
+require("./config/logger");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -14,7 +17,12 @@ const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const repository_routes_1 = __importDefault(require("./routes/repository.routes"));
 const issue_routes_1 = __importDefault(require("./routes/issue.routes"));
 const label_routes_1 = __importDefault(require("./routes/label.routes"));
+const category_routes_1 = __importDefault(require("./routes/category.routes"));
+const views_routes_1 = __importDefault(require("./routes/views.routes"));
+const analytics_routes_1 = __importDefault(require("./routes/analytics.routes"));
+const notification_routes_1 = __importDefault(require("./routes/notification.routes"));
 const error_middleware_1 = require("./middleware/error.middleware");
+const additional_routes_1 = __importDefault(require("./routes/additional.routes"));
 // Load environment variables
 dotenv_1.default.config();
 // Initialize Express app
@@ -74,13 +82,7 @@ app.get('/', (req, res) => {
         timestamp: new Date().toISOString(),
     });
 });
-app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'healthy',
-        database: 'connected', // TODO: Add actual DB health check
-        timestamp: new Date().toISOString(),
-    });
-});
+// /api/health is handled by additionalRoutes (with real DB connectivity check)
 // Swagger API Documentation
 app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.swaggerSpec, swagger_1.swaggerUiOptions));
 // Swagger JSON endpoint
@@ -93,6 +95,12 @@ app.use('/api/auth', auth_routes_1.default);
 app.use('/api/repositories', repository_routes_1.default);
 app.use('/api/issues', issue_routes_1.default);
 app.use('/api/labels', label_routes_1.default);
+app.use('/api/categories', category_routes_1.default);
+app.use('/api/views', views_routes_1.default);
+app.use('/api/analytics', analytics_routes_1.default);
+app.use('/api/notifications', notification_routes_1.default);
+// Additional Features: milestones, settings, activity-log, search, export, bulk-actions, teams, webhooks, health
+app.use('/api', additional_routes_1.default);
 // 404 Handler
 app.use(error_middleware_1.notFoundHandler);
 // Error Handler (must be last)
@@ -101,7 +109,7 @@ app.use(error_middleware_1.errorHandler);
 app.listen(PORT, () => {
     console.log(`
 ╔═══════════════════════════════════════╗
-║     🚀 DevFlow API Server Started    ║
+║    n🚀 DevFlow API Server Started    ║
 ╚═══════════════════════════════════════╝
   
   🌐 Server:      http://localhost:${PORT}
@@ -115,6 +123,11 @@ app.listen(PORT, () => {
   ✅ Repository endpoints ready!
   ✅ Issues endpoints ready! (12 endpoints)
   ✅ Labels endpoints ready! (6 endpoints)
+  ✅ Categories endpoints ready! (6 endpoints)
+  ✅ Views/Filters endpoints ready! (5 endpoints)
+  ✅ Analytics endpoints ready! (6 endpoints)
+  ✅ Notifications endpoints ready! (7 endpoints)
+  ✅ Additional Features endpoints ready! (12 endpoints)
   
 `);
 });
