@@ -15,6 +15,7 @@ import labelRoutes from './routes/label.routes';
 import categoryRoutes from './routes/category.routes';
 import viewsRoutes from './routes/views.routes';
 import analyticsRoutes from './routes/analytics.routes';
+import notificationRoutes from './routes/notification.routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
 
@@ -112,6 +113,7 @@ app.use('/api/labels', labelRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/views', viewsRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 404 Handler
 app.use(notFoundHandler);
@@ -140,6 +142,7 @@ app.listen(PORT, () => {
   ✅ Categories endpoints ready! (6 endpoints)
   ✅ Views/Filters endpoints ready! (5 endpoints)
   ✅ Analytics endpoints ready! (6 endpoints)
+  ✅ Notifications endpoints ready! (7 endpoints)
   
 `);
 });
