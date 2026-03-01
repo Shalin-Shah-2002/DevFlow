@@ -4,7 +4,7 @@ GitHub Project Dashboard Backend API built with Node.js, Express, TypeScript, an
 
 ## ⚡ Project Status
 
-✅ **54 Endpoints Implemented** | ✅ **Swagger Documentation** | ✅ **Production Ready**
+✅ **52 Endpoints Implemented** | ✅ **Swagger Documentation** | ✅ **Production Ready**
 
 - 🔐 Authentication with GitHub OAuth & JWT
 - 📦 Complete Repository Management (7 endpoints)
@@ -13,7 +13,7 @@ GitHub Project Dashboard Backend API built with Node.js, Express, TypeScript, an
 - 🗂️ Category Management (6 endpoints)
 - 🔍 Saved Views & Filters (5 endpoints)
 - 📊 Analytics & Insights (6 endpoints)
-- 🔔 Notification System (7 endpoints)
+- 🔔 Notification System (5 endpoints)
 - 🔥 Interactive API Documentation (Swagger UI)
 - 🛡️ Security: Helmet, CORS, Rate Limiting
 - ✅ Input Validation & Error Handling
@@ -154,7 +154,7 @@ Access the interactive API documentation at **http://localhost:3001/api-docs** w
 - 🔥 Try out APIs directly from the browser
 - 📖 Complete request/response schemas
 - 🔐 Built-in authentication support
-- 📋 54 implemented endpoints across 8 categories
+- 📋 52 implemented endpoints across 8 categories
 
 ### Implemented Endpoints
 
@@ -219,14 +219,12 @@ Access the interactive API documentation at **http://localhost:3001/api-docs** w
 - `GET /api/analytics/assignee-workload` - Workload per assignee
 - `GET /api/analytics/completion-rate` - Completion rate overall & per repo
 
-#### 🔔 Notifications (7 endpoints)
+#### 🔔 Notifications (5 endpoints)
 - `GET /api/notifications` - Get notifications (`?isRead=`, `?type=`, `?page=`, `?limit=`)
 - `GET /api/notifications/unread-count` - Get unread badge count
 - `GET /api/notifications/:id` - Get single notification
 - `PATCH /api/notifications/:id/read` - Mark notification as read
 - `PATCH /api/notifications/read-all` - Mark all notifications as read
-- `DELETE /api/notifications/:id` - Delete a notification
-- `DELETE /api/notifications/read` - Delete all read notifications
 
 ### Additional Documentation
 
@@ -282,11 +280,12 @@ sudo service postgresql restart
 
 ### v1.3.0 - Current Release
 
-✅ **Notification System (7 endpoints)**
+✅ **Notification System (5 endpoints)**
 - Get all notifications with filters (isRead, type, pagination)
 - Unread count for badge display
-- Mark single or all notifications as read
-- Delete single or all read notifications
+- Get single notification by ID
+- Mark single notification as read
+- Mark all notifications as read
 - Tested and verified all endpoints ✅
 
 ### v1.2.0
