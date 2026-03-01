@@ -17,6 +17,7 @@ import viewsRoutes from './routes/views.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import notificationRoutes from './routes/notification.routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
+import additionalRoutes from './routes/additional.routes';
 
 
 // Load environment variables
@@ -88,13 +89,7 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-app.get('/api/health', (req: Request, res: Response) => {
-  res.json({
-    status: 'healthy',
-    database: 'connected', // TODO: Add actual DB health check
-    timestamp: new Date().toISOString(),
-  });
-});
+// /api/health is handled by additionalRoutes (with real DB connectivity check)
 
 // Swagger API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
@@ -114,6 +109,9 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/views', viewsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/notifications', notificationRoutes);
+
+// Additional Features: milestones, settings, activity-log, search, export, bulk-actions, teams, webhooks, health
+app.use('/api', additionalRoutes);
 
 // 404 Handler
 app.use(notFoundHandler);
@@ -143,6 +141,7 @@ app.listen(PORT, () => {
   ✅ Views/Filters endpoints ready! (5 endpoints)
   ✅ Analytics endpoints ready! (6 endpoints)
   ✅ Notifications endpoints ready! (7 endpoints)
+  ✅ Additional Features endpoints ready! (12 endpoints)
   
 `);
 });
