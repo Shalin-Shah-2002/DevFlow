@@ -5,16 +5,19 @@ import { LoginPage } from './views/auth/LoginPage';
 import { AuthSuccessPage } from './views/auth/AuthSuccessPage';
 import { AuthErrorPage } from './views/auth/AuthErrorPage';
 import { ProtectedRoute } from './views/guards/ProtectedRoute';
+import { PublicOnlyRoute } from './views/guards/PublicOnlyRoute';
 import { DashboardVariant3Page } from './views/dashboard/DashboardVariant3Page';
 import { IssuesListPage } from './views/issues/IssuesListPage';
 import { IssueDetailPage } from './views/issues/IssueDetailPage';
 import { RepositoriesOverviewPage } from './views/repositories/RepositoriesOverviewPage';
-import { LabelsManagementPage } from './views/labels/LabelsManagementPage';
-import { CategoriesManagementPage } from './views/categories/CategoriesManagementPage';
+import { TaxonomyPage } from './views/taxonomy/TaxonomyPage';
 import { NotificationsPage } from './views/notifications/NotificationsPage';
 import { SavedViewsPage } from './views/views/SavedViewsPage';
 import { AnalyticsPage } from './views/analytics/AnalyticsPage';
 import { OpsToolsPage } from './views/ops/OpsToolsPage';
+import { MilestonesPage } from './views/milestones/MilestonesPage';
+import { ActivityLogPage } from './views/activity/ActivityLogPage';
+import { SettingsProfilePage } from './views/settings/SettingsProfilePage';
 import './styles/landing.css';
 import './styles/auth.css';
 import './styles/dashboard.css';
@@ -24,8 +27,22 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<LandingPageView data={pageData} />} />
-      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/"
+        element={
+          <PublicOnlyRoute>
+            <LandingPageView data={pageData} />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          <PublicOnlyRoute>
+            <LoginPage />
+          </PublicOnlyRoute>
+        }
+      />
       <Route path="/auth/success" element={<AuthSuccessPage />} />
       <Route path="/auth/error" element={<AuthErrorPage />} />
       <Route
@@ -61,21 +78,15 @@ function App() {
         }
       />
       <Route
-        path="/app/labels"
+        path="/app/taxonomy"
         element={
           <ProtectedRoute>
-            <LabelsManagementPage />
+            <TaxonomyPage />
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/app/categories"
-        element={
-          <ProtectedRoute>
-            <CategoriesManagementPage />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/app/labels" element={<Navigate to="/app/taxonomy" replace />} />
+      <Route path="/app/categories" element={<Navigate to="/app/taxonomy" replace />} />
       <Route
         path="/app/notifications"
         element={
@@ -105,6 +116,30 @@ function App() {
         element={
           <ProtectedRoute>
             <OpsToolsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/milestones"
+        element={
+          <ProtectedRoute>
+            <MilestonesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/activity"
+        element={
+          <ProtectedRoute>
+            <ActivityLogPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/settings"
+        element={
+          <ProtectedRoute>
+            <SettingsProfilePage />
           </ProtectedRoute>
         }
       />

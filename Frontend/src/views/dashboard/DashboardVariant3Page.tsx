@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Bar, BarChart, Cell, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { getDashboardVariant3Data } from '../../controllers/dashboard.controller';
-import { dashboardFallbackData, type DashboardViewModel, type IssueCard } from '../../models/dashboard.model';
+import { dashboardFallbackData, type DashboardViewModel } from '../../models/dashboard.model';
 import { useAuth } from '../auth/useAuth';
 import { DashboardSidebar } from './components/DashboardSidebar';
+import { getCompletionRate, type CompletionRateData } from '../../controllers/analytics.controller';
 
 const stagger = {
   hidden: { opacity: 0 },
@@ -22,20 +23,17 @@ const itemUp = {
   show: { opacity: 1, y: 0, transition: { duration: 0.32 } }
 };
 
-const priorityClass = (priority: IssueCard['priority']) => {
-  if (priority === 'HIGH') return 'priority-chip priority-high';
-  if (priority === 'MEDIUM') return 'priority-chip priority-medium';
-  return 'priority-chip priority-low';
-};
-
 const trendClass = (trend: 'up' | 'down') => (trend === 'up' ? 'trend up' : 'trend down');
 
 export const DashboardVariant3Page = () => {
   const { state } = useAuth();
   const navigate = useNavigate();
   const [data, setData] = useState<DashboardViewModel>(dashboardFallbackData);
+  const [completionData, setCompletionData] = useState<CompletionRateData>({
+    overall: { totalIssues: 0, closedIssues: 0, openIssues: 0, completionRate: 0 },
+    byRepository: []
+  });
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (!state.token) {
@@ -45,23 +43,24 @@ export const DashboardVariant3Page = () => {
     getDashboardVariant3Data(state.token)
       .then((result) => setData(result))
       .finally(() => setLoading(false));
+
+    getCompletionRate(state.token)
+      .then((completion) => setCompletionData(completion.data))
+      .catch(() => {
+        setCompletionData({
+          overall: { totalIssues: 0, closedIssues: 0, openIssues: 0, completionRate: 0 },
+          byRepository: []
+        });
+      });
   }, [state.token]);
 
-  const filteredIssues = useMemo(() => {
-    if (!search.trim()) {
-      return data.issueCards;
-    }
-
-    const query = search.toLowerCase();
-    return data.issueCards.filter(
-      (item) =>
-        item.title.toLowerCase().includes(query) ||
-        item.tags.some((tag) => tag.toLowerCase().includes(query)) ||
-        String(item.number).includes(query)
-    );
-  }, [data.issueCards, search]);
-
   const velocityMax = Math.max(...data.velocity.map((point) => point.velocity), 10);
+  const completionPieData = [
+    { name: 'Closed', value: completionData.overall.closedIssues },
+    { name: 'Open', value: completionData.overall.openIssues }
+  ];
+  const completionRepoData = (completionData.byRepository || []).slice(0, 4);
+  const COMPLETION_COLORS = ['#1d4fd7', '#94a3b8'];
 
   return (
     <div className="dv3-page">
@@ -76,11 +75,7 @@ export const DashboardVariant3Page = () => {
 
           <div className="dv3-header-actions">
             <label className="dv3-search">
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search issues..."
-              />
+              <input placeholder="Search issues..." />
             </label>
             <button className="icon-btn" type="button" aria-label="Notifications">
               •
@@ -126,37 +121,43 @@ export const DashboardVariant3Page = () => {
             </div>
           </motion.article>
 
-          <motion.article className="dv3-activity" variants={itemUp}>
-            <div className="dv3-activity-head">
-              <h3>Recent Activity</h3>
+          <motion.article className="dv3-completion" variants={itemUp}>
+            <h3>Completion Rate</h3>
+            <div className="analytics-completion-overall">
+              <div>
+                <strong>{completionData.overall.completionRate}%</strong>
+                <span>Overall Completion</span>
+              </div>
+              <ResponsiveContainer width="50%" height={150}>
+                <PieChart>
+                  <Pie data={completionPieData} dataKey="value" nameKey="name" innerRadius={28} outerRadius={52}>
+                    {completionPieData.map((_, index) => (
+                      <Cell key={`dashboard-completion-${index}`} fill={COMPLETION_COLORS[index % COMPLETION_COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
             </div>
 
-            <motion.div className="activity-list" variants={stagger} initial="hidden" animate="show">
-              {data.activities.map((activity) => (
-                <motion.div key={activity.id} className="activity-item" variants={itemUp}>
-                  <div className="mini-avatar">{activity.actor[0]}</div>
+            <div className="analytics-completion-list">
+              {completionRepoData.map((repo) => (
+                <div key={repo.repositoryId} className="analytics-completion-row">
                   <div>
-                    <p>
-                      <strong>{activity.actor}</strong> {activity.action}{' '}
-                      <span style={{ color: activity.targetAccent }}>{activity.target}</span>
-                    </p>
-                    <small>{activity.timeAgo}</small>
+                    <p>{repo.name}</p>
+                    <small>
+                      {repo.closedIssues}/{repo.totalIssues} closed
+                    </small>
                   </div>
-                </motion.div>
+                  <strong>{repo.completionRate}%</strong>
+                </div>
               ))}
-            </motion.div>
-
-            <a href="#" className="activity-link">
-              View all activity →
-            </a>
+              {completionRepoData.length === 0 && <div className="analytics-empty">No completion data</div>}
+            </div>
           </motion.article>
+
         </motion.section>
 
-        <motion.section className="dv3-grid-wrap" variants={stagger} initial="hidden" animate="show">
-          <motion.article className="dv3-issue-card" variants={itemUp}>
-            {filteredIssues[0] ? <IssueCardView issue={filteredIssues[0]} /> : <IssueEmpty />}
-          </motion.article>
-
+        <motion.section className="dv3-grid-wrap dv3-grid-wrap-repo-only" variants={stagger} initial="hidden" animate="show">
           <motion.article className="dv3-repo-health" variants={itemUp}>
             <h4>Repo Health</h4>
             {data.repoHealth.map((repo) => (
@@ -171,70 +172,10 @@ export const DashboardVariant3Page = () => {
               </div>
             ))}
           </motion.article>
-
-          <motion.article className="dv3-issue-card" variants={itemUp}>
-            {filteredIssues[1] ? <IssueCardView issue={filteredIssues[1]} /> : <IssueEmpty />}
-          </motion.article>
-
-          <motion.article className="dv3-workload" variants={itemUp}>
-            <div className="dv3-workload-head">
-              <h4>Team Workload</h4>
-              <span>Current Sprint</span>
-            </div>
-            <div className="dv3-workload-grid">
-              {data.workload.map((slot) => (
-                <div key={slot.team} className="workload-box">
-                  <p>{slot.team}</p>
-                  <strong>{slot.tasks}</strong>
-                  <em className={`note ${slot.status}`}>{slot.note}</em>
-                </div>
-              ))}
-            </div>
-          </motion.article>
-
-          <motion.article className="dv3-issue-card" variants={itemUp}>
-            {filteredIssues[2] ? <IssueCardView issue={filteredIssues[2]} /> : <IssueEmpty />}
-          </motion.article>
         </motion.section>
 
         {loading && <div className="dv3-loading">Refreshing dashboard from API…</div>}
       </main>
     </div>
   );
-};
-
-const IssueCardView = ({ issue }: { issue: IssueCard }) => {
-  return (
-    <>
-      <div className="issue-top">
-        <span className={priorityClass(issue.priority)}>{issue.priority} PRIORITY</span>
-        <small>#{issue.number}</small>
-      </div>
-
-      <h4>{issue.title}</h4>
-
-      <div className="issue-tags">
-        {issue.tags.map((tag) => (
-          <span key={tag}>{tag}</span>
-        ))}
-      </div>
-
-      <div className="issue-bottom">
-        <div className="issue-assignees">
-          {issue.assignees.map((avatar, index) => (
-            <span key={`${avatar}-${index}`}>{avatar}</span>
-          ))}
-        </div>
-
-        <div className="issue-meta">
-          <span>💬 {issue.comments}</span>
-          <span>⏱ {issue.age}</span>
-        </div>
-      </div>
-    </>
-  );
-};
-
-const IssueEmpty = () => {
-  return <div className="issue-empty">No issues match this filter.</div>;
 };

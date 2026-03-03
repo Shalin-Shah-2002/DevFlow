@@ -55,6 +55,8 @@ export type IssueDetailResponse = {
 export type IssueUpdatePayload = {
   priority?: 'P0' | 'P1' | 'P2' | 'P3';
   customStatus?: string;
+  state?: 'open' | 'closed';
+  stateReason?: 'completed' | 'not_planned' | 'reopened';
 };
 
 export type IssueCreatePayload = {

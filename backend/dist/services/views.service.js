@@ -6,6 +6,64 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ViewsService = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 class ViewsService {
+    normalizeFilters(rawFilters) {
+        if (!rawFilters || typeof rawFilters !== "object" || Array.isArray(rawFilters)) {
+            return {};
+        }
+        const raw = rawFilters;
+        const stateCandidate = typeof raw.state === "string" ? raw.state : typeof raw.status === "string" ? raw.status : undefined;
+        const normalizedState = stateCandidate === "OPEN"
+            ? "open"
+            : stateCandidate === "CLOSED"
+                ? "closed"
+                : stateCandidate;
+        const normalizeStringArray = (value) => {
+            if (Array.isArray(value)) {
+                return value.filter((item) => typeof item === "string" && item.trim().length > 0);
+            }
+            if (typeof value === "string" && value.trim().length > 0) {
+                return [value];
+            }
+            return [];
+        };
+        const filters = {
+            ...raw,
+            state: normalizedState,
+            priority: normalizeStringArray(raw.priority),
+            labels: normalizeStringArray(raw.labels),
+        };
+        if (filters.state !== "open" && filters.state !== "closed" && filters.state !== "all") {
+            delete filters.state;
+        }
+        if (typeof filters.order !== "string" || (filters.order !== "asc" && filters.order !== "desc")) {
+            delete filters.order;
+        }
+        if (typeof filters.sort !== "string") {
+            delete filters.sort;
+        }
+        if (typeof filters.search !== "string") {
+            delete filters.search;
+        }
+        if (typeof filters.assignee !== "string") {
+            delete filters.assignee;
+        }
+        if (typeof filters.repository !== "string") {
+            delete filters.repository;
+        }
+        if (typeof filters.category !== "string") {
+            delete filters.category;
+        }
+        if (typeof filters.milestone !== "string") {
+            delete filters.milestone;
+        }
+        if (typeof filters.createdAfter !== "string" || Number.isNaN(new Date(filters.createdAfter).getTime())) {
+            delete filters.createdAfter;
+        }
+        if (typeof filters.createdBefore !== "string" || Number.isNaN(new Date(filters.createdBefore).getTime())) {
+            delete filters.createdBefore;
+        }
+        return filters;
+    }
     // ─── 6.1 Get All Saved Views ──────────────────────────────────────────────
     async getViews(userId) {
         const views = await prisma_1.default.savedView.findMany({
@@ -76,7 +134,7 @@ class ViewsService {
         });
         if (!view)
             return null;
-        const filters = view.filters;
+        const filters = this.normalizeFilters(view.filters);
         // 2. Build dynamic where clause
         const where = {
             repository: {

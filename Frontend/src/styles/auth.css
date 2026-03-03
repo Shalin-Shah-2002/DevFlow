@@ -191,6 +191,342 @@
   color: #183fb0;
 }
 
+.login-variant-2-page {
+  display: block;
+  min-height: 100vh;
+  padding: 0;
+  background: #ffffff;
+}
+
+.login-v2-shell {
+  width: 100%;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 512px 1fr;
+  background: #ffffff;
+}
+
+.login-v2-left {
+  position: relative;
+  overflow: hidden;
+  background: #1d4ed8;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+}
+
+.login-v2-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(64px);
+  pointer-events: none;
+}
+
+.login-v2-glow-large {
+  width: 384px;
+  height: 384px;
+  left: -96px;
+  bottom: -120px;
+  background: rgba(96, 165, 250, 0.2);
+}
+
+.login-v2-glow-small {
+  width: 256px;
+  height: 256px;
+  right: -32px;
+  bottom: 160px;
+  background: rgba(37, 99, 235, 0.3);
+}
+
+.login-v2-brand {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #ffffff;
+}
+
+.login-v2-brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+.login-v2-brand .logo-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.login-v2-brand .logo-text {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.login-v2-visual {
+  position: relative;
+  z-index: 1;
+  height: 416px;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 96px 52px;
+}
+
+.login-v2-line {
+  height: 104px;
+  border: 3px solid rgba(255, 255, 255, 0.28);
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+}
+
+.login-v2-line + .login-v2-line {
+  margin-top: 12px;
+}
+
+.login-v2-line-short {
+  height: 0;
+  border-top: 4px solid rgba(255, 255, 255, 0.5);
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0;
+  margin-top: 12px;
+}
+
+.login-v2-point {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.login-v2-point-a {
+  left: 94px;
+  top: 96px;
+}
+
+.login-v2-point-b {
+  right: 74px;
+  top: 200px;
+}
+
+.login-v2-point-c {
+  left: 112px;
+  top: 200px;
+  opacity: 0.6;
+}
+
+.login-v2-chip {
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.login-v2-chip-left {
+  left: 218px;
+  top: 280px;
+}
+
+.login-v2-chip-right {
+  right: 52px;
+  top: 176px;
+}
+
+.login-v2-tagline {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.43;
+}
+
+.login-v2-right {
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(29, 79, 215, 0.07) 2px, rgba(29, 79, 215, 0) 2px),
+    #ffffff;
+  background-size: 22px 22px, auto;
+  padding: 0 128px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-v2-card {
+  width: min(100%, 448px);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.login-v2-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-v2-heading h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.login-v2-heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.56;
+}
+
+.login-v2-button {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border-radius: 8px;
+  border: 0;
+  padding: 16px 24px;
+  background: #1b1f23;
+  color: #ffffff;
+  box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.login-v2-button svg {
+  width: 24px;
+  height: 24px;
+}
+
+.login-v2-button span {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.login-v2-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.login-v2-separator {
+  height: 1px;
+  background: #f1f5f9;
+}
+
+.login-v2-security {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #94a3b8;
+}
+
+.login-v2-security-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-v2-lock {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.login-v2-security-head strong {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.login-v2-security p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.login-v2-home-link {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.login-v2-home-link a {
+  color: #1d4fd7;
+  font-weight: 600;
+}
+
+.login-v2-footer {
+  position: absolute;
+  left: 128px;
+  right: 128px;
+  bottom: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.login-v2-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.login-v2-links a {
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.43;
+}
+
+.login-v2-links a:hover {
+  color: #64748b;
+}
+
+.login-v2-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-family: 'Liberation Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.login-v2-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #10b981;
+}
+
 .auth-status {
   min-height: 100vh;
   display: grid;
@@ -265,5 +601,51 @@
 
   .login-v1-panel h1 {
     font-size: 30px;
+  }
+
+  .login-v2-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .login-v2-left {
+    padding: 28px 20px;
+    min-height: 360px;
+    gap: 18px;
+  }
+
+  .login-v2-visual {
+    height: 260px;
+    padding: 48px 24px;
+  }
+
+  .login-v2-line {
+    height: 52px;
+  }
+
+  .login-v2-point,
+  .login-v2-chip {
+    display: none;
+  }
+
+  .login-v2-right {
+    padding: 40px 20px 110px;
+    justify-content: flex-start;
+  }
+
+  .login-v2-heading h1 {
+    font-size: 30px;
+  }
+
+  .login-v2-heading p {
+    font-size: 16px;
+  }
+
+  .login-v2-footer {
+    left: 20px;
+    right: 20px;
+    bottom: 28px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 }

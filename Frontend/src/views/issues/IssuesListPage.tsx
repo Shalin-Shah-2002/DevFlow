@@ -16,9 +16,10 @@ export const IssuesListPage = () => {
   const [repositories, setRepositories] = useState<RepositoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
-  const [showCreateForm, setShowCreateForm] = useState(searchParams.get('new') === '1');
+  const [showCreateModal, setShowCreateModal] = useState(searchParams.get('new') === '1');
   const [search, setSearch] = useState('');
   const [filterState, setFilterState] = useState<'all' | 'open' | 'closed'>('all');
+  const [sortBy, setSortBy] = useState<'created' | 'updated' | 'priority' | 'comments'>('updated');
   const [createRepositoryId, setCreateRepositoryId] = useState('');
   const [createTitle, setCreateTitle] = useState('');
   const [createBody, setCreateBody] = useState('');
@@ -36,7 +37,7 @@ export const IssuesListPage = () => {
       page: 1,
       state: filterState,
       search,
-      sort: 'updated',
+      sort: sortBy,
       order: 'desc'
     })
       .then((response) => {
@@ -47,7 +48,7 @@ export const IssuesListPage = () => {
         setError('Failed to load issues.');
       })
       .finally(() => setLoading(false));
-  }, [state.token, filterState, search]);
+  }, [state.token, filterState, search, sortBy]);
 
   useEffect(() => {
     if (!state.token) {
@@ -66,7 +67,7 @@ export const IssuesListPage = () => {
 
   useEffect(() => {
     const shouldOpen = searchParams.get('new') === '1';
-    setShowCreateForm(shouldOpen);
+    setShowCreateModal(shouldOpen);
   }, [searchParams]);
 
   const clearCreateQuery = () => {
@@ -77,8 +78,8 @@ export const IssuesListPage = () => {
     }
   };
 
-  const toggleCreateForm = () => {
-    setShowCreateForm((value) => {
+  const toggleCreateModal = () => {
+    setShowCreateModal((value) => {
       const nextValue = !value;
       if (!nextValue) {
         clearCreateQuery();
@@ -113,17 +114,23 @@ export const IssuesListPage = () => {
         page: 1,
         state: filterState,
         search,
-        sort: 'updated',
+        sort: sortBy,
         order: 'desc'
       });
       setIssues(refreshed.data || []);
       clearCreateQuery();
-      setShowCreateForm(false);
+      setShowCreateModal(false);
     } catch (createError) {
       setCreateMessage(createError instanceof Error ? createError.message : 'Failed to create issue.');
     } finally {
       setCreating(false);
     }
+  };
+
+  const clearFilters = () => {
+    setFilterState('all');
+    setSortBy('updated');
+    setSearch('');
   };
 
   const stats = useMemo(() => {
@@ -149,103 +156,58 @@ export const IssuesListPage = () => {
           </div>
 
           <div className="issues-head-actions">
-            <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by title, number, or label..."
-            />
-            <select
-              value={filterState}
-              onChange={(event) => setFilterState(event.target.value as 'all' | 'open' | 'closed')}
-            >
-              <option value="all">All</option>
-              <option value="open">Open</option>
-              <option value="closed">Closed</option>
-            </select>
-            <button type="button" className="issues-new-btn" onClick={toggleCreateForm}>
-              {showCreateForm ? 'Close New Issue' : '+ New Issue'}
+            <button type="button" className="issues-new-btn" onClick={toggleCreateModal}>
+              + Add Issue
             </button>
           </div>
         </header>
 
-        {showCreateForm && (
-          <section className="issue-create-card">
-            <div className="issue-create-head">
-              <h3>Create New Issue</h3>
-              <p>Create a GitHub issue in one of your connected repositories.</p>
+        <section className="issues-filter-card">
+          <div className="issues-filter-top">
+            <label className="issues-search-input">
+              <span>🔎</span>
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search issues, labels, authors..."
+              />
+            </label>
+
+            <div className="issues-sort-wrap">
+              <span>Sort by</span>
+              <select value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)}>
+                <option value="updated">Updated</option>
+                <option value="created">Created</option>
+                <option value="priority">Priority</option>
+                <option value="comments">Comments</option>
+              </select>
             </div>
+          </div>
 
-            <div className="issue-create-grid">
-              <label>
-                <span>Repository</span>
-                <select
-                  value={createRepositoryId}
-                  onChange={(event) => setCreateRepositoryId(event.target.value)}
-                >
-                  {repositories.map((repository) => (
-                    <option key={repository.id} value={repository.id}>
-                      {repository.fullName}
-                    </option>
-                  ))}
-                </select>
-              </label>
+          <div className="issues-filter-bottom">
+            <button type="button" className={filterState === 'all' ? 'active' : ''} onClick={() => setFilterState('all')}>
+              All
+            </button>
+            <button
+              type="button"
+              className={filterState === 'open' ? 'active' : ''}
+              onClick={() => setFilterState('open')}
+            >
+              Open
+            </button>
+            <button
+              type="button"
+              className={filterState === 'closed' ? 'active' : ''}
+              onClick={() => setFilterState('closed')}
+            >
+              Closed
+            </button>
 
-              <label>
-                <span>Priority (optional)</span>
-                <select
-                  value={createPriority}
-                  onChange={(event) => setCreatePriority(event.target.value as 'P0' | 'P1' | 'P2' | 'P3' | '')}
-                >
-                  <option value="">No Priority</option>
-                  <option value="P0">P0</option>
-                  <option value="P1">P1</option>
-                  <option value="P2">P2</option>
-                  <option value="P3">P3</option>
-                </select>
-              </label>
-
-              <label className="wide">
-                <span>Title</span>
-                <input
-                  value={createTitle}
-                  onChange={(event) => setCreateTitle(event.target.value)}
-                  placeholder="Summarize the issue"
-                />
-              </label>
-
-              <label className="wide">
-                <span>Description (optional)</span>
-                <textarea
-                  value={createBody}
-                  onChange={(event) => setCreateBody(event.target.value)}
-                  placeholder="Describe the problem, expected behavior, and context"
-                />
-              </label>
-            </div>
-
-            <div className="issue-create-actions">
-              <button type="button" onClick={() => void handleCreateIssue()} disabled={creating}>
-                {creating ? 'Creating...' : 'Create Issue'}
-              </button>
-            </div>
-
-            {createMessage && <div className="issue-create-message">{createMessage}</div>}
-          </section>
-        )}
-
-        <section className="issues-summary">
-          <article>
-            <span>Total</span>
-            <strong>{stats.total}</strong>
-          </article>
-          <article>
-            <span>Open</span>
-            <strong>{stats.open}</strong>
-          </article>
-          <article>
-            <span>Closed</span>
-            <strong>{stats.closed}</strong>
-          </article>
+            <span className="divider" />
+            <button type="button" className="clear" onClick={clearFilters}>
+              Clear filters
+            </button>
+          </div>
         </section>
 
         <section className="issues-table-wrap">
@@ -256,34 +218,127 @@ export const IssuesListPage = () => {
           {!loading && !error && issues.length > 0 && (
             <motion.div className="issues-table" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <div className="issues-row issues-row-head">
+                <span>#</span>
                 <span>Issue</span>
-                <span>Repository</span>
-                <span>State</span>
-                <span>Priority</span>
-                <span>Comments</span>
+                <span>Status</span>
+                <span>Tags</span>
+                <span>Assignee</span>
                 <span>Action</span>
               </div>
 
               {issues.map((issue) => (
                 <div key={issue.id} className="issues-row">
+                  <span>#{issue.number}</span>
                   <div>
-                    <strong>
-                      #{issue.number} {issue.title}
-                    </strong>
-                    <small>
-                      {issue.labels.slice(0, 2).map((label) => label.name).join(' · ') || 'No labels'}
-                    </small>
+                    <strong>{issue.title}</strong>
+                    <small>{issue.repository.fullName}</small>
                   </div>
-                  <span>{issue.repository.fullName}</span>
                   <span className={issue.state === 'open' ? 'badge-open' : 'badge-closed'}>{issue.state}</span>
-                  <span>{issue.priority || '—'}</span>
-                  <span>{issue.commentsCount}</span>
+                  <span className="issues-tags-inline">
+                    {(issue.labels || []).slice(0, 2).map((label) => (
+                      <em key={label.id}>{label.name}</em>
+                    ))}
+                    {(issue.labels || []).length === 0 && <em>No tags</em>}
+                  </span>
+                  <span>
+                    {issue.assignees?.[0]?.githubLogin || 'Unassigned'}
+                    {issue.priority ? <small className="issues-priority-chip">{issue.priority}</small> : null}
+                  </span>
                   <Link to={`/app/issues/${issue.id}`}>View</Link>
                 </div>
               ))}
             </motion.div>
           )}
+
+          <footer className="issues-pagination-note">
+            <span>
+              Showing <strong>{issues.length}</strong> issues • Open <strong>{stats.open}</strong> • Closed{' '}
+              <strong>{stats.closed}</strong>
+            </span>
+          </footer>
         </section>
+
+        {showCreateModal && (
+          <div className="issue-create-modal-backdrop" role="dialog" aria-modal="true" aria-label="Add Issue">
+            <div className="issue-create-modal">
+              <header>
+                <h3>Add New Issue</h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    clearCreateQuery();
+                  }}
+                >
+                  ✕
+                </button>
+              </header>
+
+              <div className="issue-create-grid">
+                <label>
+                  <span>Repository</span>
+                  <select value={createRepositoryId} onChange={(event) => setCreateRepositoryId(event.target.value)}>
+                    {repositories.map((repository) => (
+                      <option key={repository.id} value={repository.id}>
+                        {repository.fullName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>
+                  <span>Priority (optional)</span>
+                  <select
+                    value={createPriority}
+                    onChange={(event) => setCreatePriority(event.target.value as 'P0' | 'P1' | 'P2' | 'P3' | '')}
+                  >
+                    <option value="">No Priority</option>
+                    <option value="P0">P0</option>
+                    <option value="P1">P1</option>
+                    <option value="P2">P2</option>
+                    <option value="P3">P3</option>
+                  </select>
+                </label>
+
+                <label className="wide">
+                  <span>Title</span>
+                  <input
+                    value={createTitle}
+                    onChange={(event) => setCreateTitle(event.target.value)}
+                    placeholder="Summarize the issue"
+                  />
+                </label>
+
+                <label className="wide">
+                  <span>Description (optional)</span>
+                  <textarea
+                    value={createBody}
+                    onChange={(event) => setCreateBody(event.target.value)}
+                    placeholder="Describe the problem, expected behavior, and context"
+                  />
+                </label>
+              </div>
+
+              {createMessage && <div className="issue-create-message">{createMessage}</div>}
+
+              <footer>
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    clearCreateQuery();
+                  }}
+                >
+                  Cancel
+                </button>
+                <button type="button" onClick={() => void handleCreateIssue()} disabled={creating}>
+                  {creating ? 'Creating...' : 'Create Issue'}
+                </button>
+              </footer>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
