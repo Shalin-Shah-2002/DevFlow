@@ -12,6 +12,7 @@
 - [Technology Stack](#technology-stack)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
+- [Deployment](#deployment)
 - [API Development Status](#api-development-status)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
@@ -182,11 +183,16 @@
 - **State Management**: Redux Toolkit / Riverpod
 - **UI Framework**: Material-UI / Tailwind CSS
 
-### DevOps & Tools
-- **Version Control**: Git & GitHub
-- **Package Manager**: npm/yarn
+### DevOps & Infrastructure
+- **CI/CD**: GitHub Actions (3-job pipeline: test → build → deploy)
+- **Containerization**: Docker + Docker Compose
+- **Container Registry**: GitHub Container Registry (GHCR)
+- **Backend Hosting**: AWS EC2 (t3.micro, eu-north-1)
+- **Database Hosting**: AWS RDS PostgreSQL 17 (eu-north-1)
+- **Frontend Hosting**: Cloudflare Pages _(coming soon)_
+- **Package Manager**: npm
 - **Development**: Nodemon, ts-node
-- **API Testing**: Postman (recommended)
+- **API Testing**: Swagger UI, Postman
 
 ---
 
@@ -269,6 +275,67 @@ DevFlow/
    - 🏥 Health Check: http://localhost:3001/api/health
 
 📖 **For detailed setup instructions, see [QUICK_START.md](QUICK_START.md)**
+
+---
+
+## 🚢 Deployment
+
+### ✅ Backend — Live on AWS EC2
+
+**Production URL:** `http://16.16.218.19:3001`
+
+| Resource | Details |
+|---|---|
+| Server | AWS EC2 t3.micro (eu-north-1) |
+| Database | AWS RDS PostgreSQL 17 (eu-north-1) |
+| Container | Docker via GHCR (`ghcr.io/shalin-shah-2002/devflow-backend:latest`) |
+| Swagger UI | http://16.16.218.19:3001/api-docs |
+| API Spec | http://16.16.218.19:3001/api-docs.json |
+
+#### CI/CD Pipeline (GitHub Actions)
+
+Every push to `main` that touches `backend/` triggers a 3-job pipeline:
+
+```
+Job 1: api-tests  (~2 min)
+├── Spins up a real PostgreSQL container
+├── Runs Prisma migrations
+├── Builds and starts the backend
+├── Seeds test data
+└── Hits all 66 Swagger endpoints — must pass before proceeding
+
+Job 2: build-and-push-image  (~3 min)
+├── Builds multi-stage Docker image (node:20-slim)
+│   ├── Stage 1: compile TypeScript, generate Prisma client, pre-build swagger.json
+│   └── Stage 2: production-only deps, ~200MB lean image
+└── Pushes to GHCR with :latest and :sha tags
+
+Job 3: deploy-ec2  (~1 min)
+├── SCP docker-compose.yml to EC2
+├── SSH: write .env from GitHub secret
+├── docker compose pull → docker compose up -d
+└── Container runs: prisma migrate deploy && node dist/index.js
+```
+
+#### Required GitHub Secrets
+
+| Secret | Value |
+|---|---|
+| `EC2_HOST` | `16.16.218.19` |
+| `EC2_USER` | `ec2-user` |
+| `EC2_SSH_KEY` | EC2 private key (PEM format) |
+| `BACKEND_ENV_FILE` | Full `.env` contents (DB URL, JWT secret, GitHub OAuth, etc.) |
+
+#### Re-deploy manually
+
+Go to **GitHub → Actions → Backend CI/CD → Run workflow** to trigger without a push.
+
+---
+
+### 🔜 Frontend — Cloudflare Pages _(coming soon)_
+
+Frontend (React + Vite) will be deployed to Cloudflare Pages.
+Once live, update the `FRONTEND_URL` in the `BACKEND_ENV_FILE` GitHub secret and update the GitHub OAuth app callback URL.
 
 ---
 
@@ -474,17 +541,34 @@ Track the implementation progress of all API endpoints across 10 categories.
 - [x] Webhook registration (1 endpoint)
 - [x] Health check with DB ping (1 endpoint)
 
-### 🚀 Phase 3: Frontend Development (PLANNED)
-- [ ] React web application
+### 🚧 Phase 3: Frontend Development (IN PROGRESS)
+- [ ] React web application (in progress)
 - [ ] Flutter mobile app
 - [ ] UI/UX implementation
 - [ ] State management
 
-### 🎯 Phase 4: Production Ready (PLANNED)
-- [ ] Testing & QA
+### ✅ Phase 3: Backend Deployment (COMPLETED)
+- [x] Dockerized backend with multi-stage build
+- [x] AWS EC2 instance (t3.micro, eu-north-1)
+- [x] AWS RDS PostgreSQL 17
+- [x] GitHub Container Registry (GHCR) for Docker images
+- [x] GitHub Actions CI/CD pipeline (test → build → deploy)
+- [x] Automated API smoke tests (66 endpoints) on every push
+- [x] Pre-generated Swagger spec (served from container)
+- [x] Production Swagger UI live at http://16.16.218.19:3001/api-docs
+
+### 🚧 Phase 4: Frontend Deployment (IN PROGRESS)
+- [ ] React + Vite frontend build
+- [ ] Deploy to Cloudflare Pages
+- [ ] Configure production API URL
+- [ ] Update GitHub OAuth callback URL
+- [ ] CI/CD for frontend (auto-deploy on push)
+
+### 🎯 Phase 5: Production Polish (PLANNED)
+- [ ] Custom domain + SSL (HTTPS)
 - [ ] Performance optimization
+- [ ] Unit & integration tests
 - [ ] Security hardening
-- [ ] Deployment
 - [ ] Documentation finalization
 
 ---
