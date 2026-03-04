@@ -27,25 +27,27 @@ dotenv.config();
 const app: Application = express();
 const PORT = process.env.PORT || 3001;
 
+// Swagger must be mounted BEFORE helmet to avoid CSP blocking its assets
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+app.get('/api-docs.json', (req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
 // Security Middleware
-// Disable helmet in development to avoid CSP issues
-if (process.env.NODE_ENV === 'production') {
-  app.use(
-    helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'", "'unsafe-inline'"],
-          imgSrc: ["'self'", 'data:', 'https:'],
-        },
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        upgradeInsecureRequests: null, // disable — server runs on plain HTTP
       },
-    })
-  );
-} else {
-  // In development, use helmet but disable CSP
-  app.use(helmet({ contentSecurityPolicy: false }));
-}
+    },
+  })
+);
 
 // CORS Configuration - Allow all origins in development
 if (process.env.NODE_ENV === 'production') {
@@ -90,15 +92,6 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // /api/health is handled by additionalRoutes (with real DB connectivity check)
-
-// Swagger API Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
-
-// Swagger JSON endpoint
-app.get('/api-docs.json', (req: Request, res: Response) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
-});
 
 // API Routes
 app.use('/api/auth', authRoutes);
