@@ -192,8 +192,6 @@ jobs:
             ${{ secrets.BACKEND_ENV_FILE }}
             EOF
 
-            export IMAGE=ghcr.io/shalin-shah-2002/devflow-backend:latest
-
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull
             docker compose up -d --remove-orphans

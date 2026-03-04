@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ${IMAGE}
+    image: ghcr.io/shalin-shah-2002/devflow-backend:latest
     container_name: devflow-backend
     restart: always
     env_file:
