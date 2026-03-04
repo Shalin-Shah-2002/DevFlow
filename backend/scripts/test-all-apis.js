@@ -4,14 +4,18 @@ const BASE_URL = process.env.API_BASE_URL || 'http://127.0.0.1:3001';
 const API_TEST_TOKEN = process.env.API_TEST_TOKEN || '';
 const REQUEST_TIMEOUT = Number(process.env.API_TEST_TIMEOUT_MS || 15000);
 
+// Use a valid CUID-shaped placeholder so Prisma doesn't throw a format validation
+// error (which returns 500). The DB will return 404 (not found) instead.
+const FAKE_ID = 'clzzzzzzzzzzzzzzzzzzzzzzz';
+
 function buildUrl(pathTemplate) {
   return pathTemplate
-    .replace(/\{repoId\}/g, 'test-repo-id')
-    .replace(/\{repositoryId\}/g, 'test-repo-id')
-    .replace(/\{issueId\}/g, 'test-issue-id')
-    .replace(/\{commentId\}/g, 'test-comment-id')
-    .replace(/\{categoryId\}/g, 'test-category-id')
-    .replace(/\{id\}/g, 'test-id');
+    .replace(/\{repoId\}/g, FAKE_ID)
+    .replace(/\{repositoryId\}/g, FAKE_ID)
+    .replace(/\{issueId\}/g, FAKE_ID)
+    .replace(/\{commentId\}/g, FAKE_ID)
+    .replace(/\{categoryId\}/g, FAKE_ID)
+    .replace(/\{id\}/g, FAKE_ID);
 }
 
 function getRequestBody(method) {
