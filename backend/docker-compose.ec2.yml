@@ -1,0 +1,9 @@
+services:
+  backend:
+    image: ${IMAGE}
+    container_name: devflow-backend
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "${PORT:-3001}:3001"

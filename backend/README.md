@@ -78,6 +78,8 @@ Once the server is running:
 - `npm run dev` - Start development server with hot reload
 - `npm run build` - Build TypeScript to JavaScript
 - `npm start` - Start production server
+- `npm run start:ci` - Start compiled server (used in CI)
+- `npm run test:apis` - Run smoke tests against all Swagger-documented API routes
 - `npm run prisma:generate` - Generate Prisma Client
 - `npm run prisma:migrate` - Run database migrations
 - `npm run prisma:studio` - Open Prisma Studio (DB GUI)
@@ -231,6 +233,8 @@ Access the interactive API documentation at **http://localhost:3001/api-docs** w
 - 📋 **Postman Collection**: `Docs/Postman_Collection.json`
 - 📖 **Detailed API Docs**: `Docs/API_DOCUMENTATION.md`
 - 🗄️ **Database Schema**: `Docs/SCHEMA_EXPLAINED.md`
+- 🚀 **EC2 CI/CD Setup**: `Docs/EC2_CICD_SETUP.md`
+- ☁️ **AWS EC2 + RDS Full Guide**: `Docs/AWS_EC2_RDS_DEPLOYMENT_GUIDE.md`
 
 ## ❗ Common Issues & Solutions
 

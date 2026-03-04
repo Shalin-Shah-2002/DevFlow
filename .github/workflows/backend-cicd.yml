@@ -1,0 +1,200 @@
+name: Backend CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-cicd.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-cicd.yml'
+  workflow_dispatch:
+
+jobs:
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: devflow_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d devflow_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/devflow_test?schema=public
+      GITHUB_CLIENT_ID: test-client-id
+      GITHUB_CLIENT_SECRET: test-client-secret
+      GITHUB_CALLBACK_URL: http://localhost:3001/api/auth/github/callback
+      JWT_SECRET: ci-test-jwt-secret
+      JWT_EXPIRES_IN: 7d
+      PORT: 3001
+      NODE_ENV: test
+      FRONTEND_URL: http://localhost:5173
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Apply database migrations
+        run: npx prisma migrate deploy
+
+      - name: Build backend
+        run: npm run build
+
+      - name: Seed test data
+        run: node setup-test-data.js
+
+      - name: Generate API test token
+        run: |
+          TOKEN=$(node -e "const jwt=require('jsonwebtoken'); console.log(jwt.sign({id:'test-user-123',email:'test@example.com',githubId:123456}, process.env.JWT_SECRET, {expiresIn:'1h'}));")
+          echo "API_TEST_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+
+      - name: Start backend server
+        run: |
+          npm run start:ci > /tmp/devflow-backend.log 2>&1 &
+          echo $! > /tmp/devflow-backend.pid
+
+      - name: Wait for server readiness
+        run: |
+          for i in {1..40}; do
+            if curl -sSf http://127.0.0.1:3001/api-docs.json > /dev/null; then
+              echo "Backend is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend failed to become ready"
+          cat /tmp/devflow-backend.log || true
+          exit 1
+
+      - name: Run API smoke tests (all Swagger endpoints)
+        env:
+          API_BASE_URL: http://127.0.0.1:3001
+          API_TEST_TOKEN: ${{ env.API_TEST_TOKEN }}
+        run: npm run test:apis
+
+      - name: Stop backend server
+        if: always()
+        run: |
+          if [ -f /tmp/devflow-backend.pid ]; then
+            kill "$(cat /tmp/devflow-backend.pid)" || true
+          fi
+          cat /tmp/devflow-backend.log || true
+
+  build-and-push-image:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: api-tests
+    if: github.event_name != 'pull_request'
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/devflow-backend
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy-ec2:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: build-and-push-image
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy compose file to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: backend/docker-compose.ec2.yml
+          target: /opt/devflow-backend
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            mkdir -p /opt/devflow-backend
+            cd /opt/devflow-backend
+            mv -f backend/docker-compose.ec2.yml docker-compose.yml || true
+            rm -rf backend || true
+
+            cat > .env << 'EOF'
+            ${{ secrets.BACKEND_ENV_FILE }}
+            EOF
+
+            export IMAGE=ghcr.io/${{ github.repository_owner }}/devflow-backend:latest
+
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -af --filter "until=72h"
