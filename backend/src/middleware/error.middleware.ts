@@ -11,7 +11,13 @@ export const errorHandler = (
 ): void => {
   console.error('Error:', err);
 
-  const statusCode = err.statusCode || 500;
+  // Auto-map common "not found" messages thrown from services to 404
+  const isNotFound =
+    err.statusCode === 404 ||
+    /not found/i.test(err.message || '') ||
+    err.code === 'P2025'; // Prisma: record not found
+
+  const statusCode = isNotFound ? 404 : (err.statusCode || 500);
   const message = err.message || 'Internal Server Error';
 
   res.status(statusCode).json({
