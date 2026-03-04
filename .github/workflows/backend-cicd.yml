@@ -139,7 +139,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/devflow-backend
+          images: ghcr.io/shalin-shah-2002/devflow-backend
           tags: |
             type=raw,value=latest
             type=sha
@@ -192,7 +192,7 @@ jobs:
             ${{ secrets.BACKEND_ENV_FILE }}
             EOF
 
-            export IMAGE=ghcr.io/${{ github.repository_owner }}/devflow-backend:latest
+            export IMAGE=ghcr.io/shalin-shah-2002/devflow-backend:latest
 
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull
