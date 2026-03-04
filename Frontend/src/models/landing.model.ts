@@ -101,7 +101,7 @@ export const landingPageData: LandingPageData = {
       'https://www.figma.com/api/mcp/asset/e483a6e3-779c-4477-b977-baf658a13df6'
     ],
     extraCount: '+2k',
-    previewImage: 'https://www.figma.com/api/mcp/asset/7c1c6684-b182-4caa-87b9-f2eae76aa8f2'
+    previewImage: '/dashboard-preview-v2.png'
   },
   features: {
     heading: 'Streamline Your Workflow',
@@ -170,10 +170,10 @@ export const landingPageData: LandingPageData = {
     { value: '500+', label: 'Companies' }
   ],
   cta: {
-    heading: 'Ready to take control?',
+    heading: 'Turn every issue into momentum.',
     subheading: [
-      'Join thousands of engineers who have transformed their GitHub',
-      'workflow with DevFlow.'
+      'Great teams are built one solved blocker at a time.',
+      'DevFlow helps you move from chaos to clarity, every single sprint.'
     ],
     primary: 'Get Started Free',
     secondary: 'Schedule Demo'

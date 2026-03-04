@@ -649,3 +649,131 @@
     gap: 10px;
   }
 }
+
+@media (max-width: 768px) {
+  .login-page {
+    padding: 12px;
+  }
+
+  .login-v1-panel,
+  .login-v1-card {
+    padding: 22px 16px;
+  }
+
+  .login-v1-panel h1,
+  .login-v1-card h2 {
+    font-size: 26px;
+  }
+
+  .login-v2-left {
+    min-height: 280px;
+    padding: 20px 16px;
+    gap: 14px;
+  }
+
+  .login-v2-brand .logo-text {
+    font-size: 20px;
+  }
+
+  .login-v2-visual {
+    height: 220px;
+    padding: 34px 16px;
+  }
+
+  .login-v2-right {
+    padding: 24px 16px 86px;
+  }
+
+  .login-v2-card {
+    width: 100%;
+    gap: 16px;
+  }
+
+  .login-v2-heading {
+    gap: 8px;
+  }
+
+  .login-v2-heading h1 {
+    font-size: 26px;
+  }
+
+  .login-v2-heading p {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .login-v2-button {
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .login-v2-button span {
+    font-size: 15px;
+  }
+
+  .login-v2-footer {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .app-shell {
+    padding: 28px 12px;
+  }
+
+  .app-shell-header,
+  .app-shell-body {
+    padding: 16px;
+  }
+
+  .app-shell-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .app-shell-header h1 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 540px) {
+  .login-v1-panel,
+  .login-v1-card {
+    padding: 18px 14px;
+  }
+
+  .login-v1-panel h1,
+  .login-v1-card h2,
+  .login-v2-heading h1 {
+    font-size: 24px;
+  }
+
+  .login-v2-left {
+    min-height: 220px;
+    padding: 16px 14px;
+  }
+
+  .login-v2-visual {
+    height: 190px;
+    padding: 24px 12px;
+  }
+
+  .login-v2-tagline,
+  .login-v2-home-link,
+  .login-v2-links a,
+  .login-v2-status {
+    font-size: 12px;
+  }
+
+  .login-v2-right {
+    padding: 18px 12px 84px;
+  }
+
+  .login-v2-card {
+    gap: 14px;
+  }
+
+  .login-v2-security p {
+    font-size: 12px;
+  }
+}

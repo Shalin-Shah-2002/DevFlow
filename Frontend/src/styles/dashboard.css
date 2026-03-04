@@ -4616,3 +4616,281 @@
     align-items: flex-start;
   }
 }
+
+@media (max-width: 768px) {
+  .dv3-main,
+  .issues-main,
+  .repos-main,
+  .labels-main,
+  .categories-main,
+  .taxonomy-main,
+  .saved-views-main,
+  .notifications-main,
+  .analytics-main,
+  .ops-main,
+  .settings-main,
+  .milestones-main,
+  .activity-main,
+  .idv-main,
+  .idv-main-with-sidebar {
+    padding: 12px;
+  }
+
+  .dv3-header h2,
+  .issues-head h2,
+  .repos-head h2,
+  .settings-profile-title h2,
+  .analytics-head h2,
+  .saved-views-head h2,
+  .notifications-head h2,
+  .activity-head h2 {
+    font-size: 24px;
+    line-height: 1.25;
+  }
+
+  .dv3-header p,
+  .issues-head p,
+  .repos-head p,
+  .analytics-head p,
+  .saved-views-head p,
+  .notifications-head p,
+  .activity-head p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .dv3-header-actions,
+  .issues-head-actions,
+  .repos-head-actions,
+  .repos-toolbar,
+  .labels-toolbar,
+  .categories-toolbar,
+  .saved-view-actions,
+  .saved-view-foot,
+  .notification-actions,
+  .settings-profile-footer,
+  .milestones-actions,
+  .activity-filters,
+  .taxonomy-actions,
+  .taxonomy-row-actions,
+  .idv-comment-actions,
+  .idv-priority-row,
+  .idv-inline-edit,
+  .idv-breadcrumb-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .dv3-search,
+  .dv3-search input,
+  .issues-head-actions input,
+  .repos-search-input,
+  .taxonomy-search,
+  .saved-views-create-grid input,
+  .saved-views-create-grid textarea,
+  .issues-filter-top input,
+  .issues-filter-top select,
+  .issues-filter-bottom select,
+  .issues-filter-bottom input,
+  .issue-create-grid input,
+  .issue-create-grid select,
+  .issue-create-grid textarea,
+  .idv-comment-box textarea,
+  .idv-priority-row select,
+  .idv-inline-edit select,
+  .settings-profile-grid input,
+  .settings-profile-grid textarea,
+  .milestones-create-grid input,
+  .milestones-create-grid select,
+  .milestones-create-grid textarea,
+  .labels-create-grid input,
+  .categories-create-grid input,
+  .repos-add-grid input,
+  .repos-add-grid select,
+  .repos-add-grid textarea {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dv3-overview,
+  .dv3-grid-wrap,
+  .issues-summary,
+  .repos-summary,
+  .repos-cards-grid,
+  .repos-content-grid,
+  .repos-focus-stats,
+  .repos-mini-summary,
+  .labels-summary,
+  .categories-summary,
+  .taxonomy-categories-grid,
+  .saved-views-list,
+  .analytics-grid,
+  .ops-grid,
+  .settings-grid,
+  .settings-profile-grid,
+  .milestones-list,
+  .milestones-create-grid,
+  .idv-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .dv3-metrics,
+  .dv3-chart,
+  .dv3-completion,
+  .dv3-repo-health,
+  .idv-card,
+  .saved-view-item,
+  .notification-item,
+  .analytics-card,
+  .ops-grid article,
+  .settings-card,
+  .milestone-item,
+  .activity-list article,
+  .repos-focus-panel,
+  .repo-card,
+  .taxonomy-card,
+  .label-item,
+  .category-item {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .dv3-grid-wrap,
+  .dv3-grid-wrap-repo-only,
+  .issues-list,
+  .saved-views-list,
+  .analytics-grid,
+  .ops-grid,
+  .repos-focus-panel,
+  .taxonomy-table-wrap {
+    overflow-x: auto;
+  }
+
+  .issues-table,
+  .taxonomy-table,
+  .repos-table,
+  .activity-table {
+    min-width: 640px;
+  }
+
+  .issue-row,
+  .issues-row,
+  .repos-row,
+  .taxonomy-row,
+  .activity-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .issue-title,
+  .repos-name,
+  .taxonomy-name,
+  .activity-title,
+  .idv-heading-card h1,
+  .saved-view-item h3 {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .dv3-overview .analytics-completion-overall,
+  .analytics-completion-overall {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dv3-overview .recharts-responsive-container,
+  .analytics-completion-overall .recharts-responsive-container {
+    width: 100% !important;
+  }
+
+  .dv3-overview .analytics-completion-overall strong {
+    font-size: 34px;
+  }
+
+  .idv-open-gh,
+  .idv-comment-actions button,
+  .idv-priority-row button,
+  .idv-inline-edit button,
+  .dv3-header-actions .new-btn,
+  .dv3-header-actions .icon-btn,
+  .saved-view-foot button,
+  .saved-view-actions button,
+  .notifications-actions button,
+  .ops-grid button,
+  .settings-profile-footer button,
+  .milestones-actions button,
+  .repos-head-actions button,
+  .repos-toolbar button,
+  .labels-toolbar button,
+  .categories-toolbar button,
+  .taxonomy-actions button,
+  .activity-filters button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 540px) {
+  .dv3-main,
+  .issues-main,
+  .repos-main,
+  .labels-main,
+  .categories-main,
+  .taxonomy-main,
+  .saved-views-main,
+  .notifications-main,
+  .analytics-main,
+  .ops-main,
+  .settings-main,
+  .milestones-main,
+  .activity-main,
+  .idv-main,
+  .idv-main-with-sidebar {
+    padding: 10px;
+  }
+
+  .dv3-header h2,
+  .issues-head h2,
+  .repos-head h2,
+  .analytics-head h2,
+  .saved-views-head h2,
+  .notifications-head h2,
+  .settings-profile-title h2,
+  .activity-head h2,
+  .idv-heading-card h1 {
+    font-size: 21px;
+  }
+
+  .dv3-header p,
+  .issues-head p,
+  .repos-head p,
+  .analytics-head p,
+  .saved-views-head p,
+  .notifications-head p,
+  .activity-head p,
+  .idv-heading-meta,
+  .saved-view-item small,
+  .notification-item small,
+  .repos-head-hint,
+  .taxonomy-hint {
+    font-size: 12px;
+  }
+
+  .dv3-overview .analytics-completion-overall strong,
+  .analytics-completion-overall strong {
+    font-size: 30px;
+  }
+
+  .recharts-wrapper,
+  .recharts-surface {
+    max-width: 100%;
+  }
+
+  .issues-table,
+  .taxonomy-table,
+  .repos-table,
+  .activity-table {
+    min-width: 560px;
+  }
+}

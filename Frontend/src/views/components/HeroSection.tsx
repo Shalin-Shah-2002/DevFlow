@@ -33,14 +33,16 @@ export const HeroSection = ({ hero }: HeroSectionProps) => {
             </button>
           </div>
 
-          <div className="hero-proof">
-            <div className="avatar-group">
-              {hero.avatars.map((avatar, index) => (
-                <img key={avatar} src={avatar} alt={`Developer ${index + 1}`} className="avatar" />
-              ))}
-              <span className="avatar-more">{hero.extraCount}</span>
+          <div className="hero-credit">
+            <span className="credit-by">Built by Shalin Shah</span>
+            <div className="credit-links">
+              <a href="https://www.linkedin.com/in/shalin-shah0705/" target="_blank" rel="noreferrer">
+                LinkedIn
+              </a>
+              <a href="https://github.com/Shalin-Shah-2002" target="_blank" rel="noreferrer">
+                GitHub
+              </a>
             </div>
-            <span className="proof-text">{hero.socialProof}</span>
           </div>
         </div>
 
@@ -51,7 +53,7 @@ export const HeroSection = ({ hero }: HeroSectionProps) => {
             <span className="dot dot-green" />
           </div>
           <div className="preview-body">
-            <img src={hero.previewImage} alt="Dashboard preview" className="preview-image" />
+            <img src={hero.previewImage} alt="DevFlow dashboard screenshot" className="preview-image" />
           </div>
         </div>
       </div>
