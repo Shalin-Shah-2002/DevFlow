@@ -142,12 +142,24 @@ const swaggerDefinition = {
   ],
 };
 
+import fs from 'fs';
+import path from 'path';
+
 const options = {
   swaggerDefinition,
-  apis: ['./src/routes/*.ts', './src/controllers/*.ts'], // Path to the API routes
+  apis: ['./src/routes/*.ts', './src/controllers/*.ts'],
 };
 
-export const swaggerSpec = swaggerJsdoc(options);
+function loadSwaggerSpec() {
+  // In production, use the pre-generated swagger.json
+  const prebuilt = path.join(process.cwd(), 'swagger.json');
+  if (fs.existsSync(prebuilt)) {
+    return JSON.parse(fs.readFileSync(prebuilt, 'utf-8'));
+  }
+  return swaggerJsdoc(options);
+}
+
+export const swaggerSpec = loadSwaggerSpec();
 
 export const swaggerUiOptions: SwaggerOptions = {
   customCss: '.swagger-ui .topbar { display: none }',

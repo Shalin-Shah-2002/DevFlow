@@ -12,6 +12,7 @@ COPY src ./src
 
 RUN npx prisma generate
 RUN npm run build
+RUN node -e "const s=require('./dist/config/swagger'); const fs=require('fs'); fs.writeFileSync('./swagger.json', JSON.stringify(s.swaggerSpec));"
 
 FROM node:20-slim AS runner
 WORKDIR /app
@@ -25,6 +26,7 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/swagger.json ./swagger.json
 COPY prisma ./prisma
 
 EXPOSE 3001
