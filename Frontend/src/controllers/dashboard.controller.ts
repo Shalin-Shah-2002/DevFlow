@@ -81,7 +81,9 @@ type UnreadCountData = {
   unreadCount: number;
 };
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) || 'http://localhost:3001/api';
+const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ||
+  (window.location.hostname === 'devfloww.tech' ? 'https://api.devfloww.tech/api' : 'http://localhost:3001/api');
 
 const apiGet = async <T>(path: string, token: string): Promise<T> => {
   const response = await fetch(`${API_BASE_URL}${path}`, {
