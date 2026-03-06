@@ -1,4 +1,5 @@
 import type { LandingPageData } from '../../models/landing.model';
+import { Link } from 'react-router-dom';
 
 type HeroSectionProps = {
   hero: LandingPageData['hero'];
@@ -24,13 +25,10 @@ export const HeroSection = ({ hero }: HeroSectionProps) => {
           </p>
 
           <div className="hero-actions">
-            <button className="btn btn-primary" type="button">
+            <Link className="btn btn-primary" to="/login">
               {hero.primaryCta}
               <span className="arrow">→</span>
-            </button>
-            <button className="btn btn-secondary" type="button">
-              {hero.secondaryCta}
-            </button>
+            </Link>
           </div>
 
           <div className="hero-credit">

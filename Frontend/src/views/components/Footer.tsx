@@ -19,6 +19,14 @@ export const Footer = ({ footer }: FooterProps) => {
                 <span key={line}>{line}</span>
               ))}
             </p>
+            <div className="footer-contribution-links">
+              <a href="https://github.com/Shalin-Shah-2002/DevFlow" target="_blank" rel="noreferrer">
+                Want to check out the code? View it on GitHub.
+              </a>
+              <a href="https://github.com/Shalin-Shah-2002/DevFlow" target="_blank" rel="noreferrer">
+                Want to contribute? I am open to contributions.
+              </a>
+            </div>
           </div>
 
           <div className="footer-links">

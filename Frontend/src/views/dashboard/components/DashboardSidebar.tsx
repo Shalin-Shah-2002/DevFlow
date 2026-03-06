@@ -25,6 +25,7 @@ export const DashboardSidebar = ({ unreadCount = 0, authState }: SidebarProps) =
   const { logout } = useAuth();
   const [liveUnreadCount, setLiveUnreadCount] = useState(unreadCount);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   const handleLogout = async () => {
     if (isLoggingOut) {
@@ -56,8 +57,35 @@ export const DashboardSidebar = ({ unreadCount = 0, authState }: SidebarProps) =
     return () => window.clearInterval(timer);
   }, [authState.token, unreadCount]);
 
+  useEffect(() => {
+    setIsMobileDrawerOpen(false);
+  }, [location.pathname]);
+
+  const closeDrawer = () => setIsMobileDrawerOpen(false);
+  const openDrawer = () => setIsMobileDrawerOpen(true);
+
   return (
-    <aside className="dv3-sidebar">
+    <>
+      <button
+        type="button"
+        className="dv3-mobile-menu-btn"
+        onClick={openDrawer}
+        aria-label="Open navigation menu"
+        aria-expanded={isMobileDrawerOpen}
+      >
+        Menu
+      </button>
+
+      {isMobileDrawerOpen && (
+        <button
+          type="button"
+          className="dv3-drawer-backdrop"
+          aria-label="Close navigation menu"
+          onClick={closeDrawer}
+        />
+      )}
+
+      <aside className={`dv3-sidebar ${isMobileDrawerOpen ? 'mobile-open' : ''}`}>
       <div className="dv3-brand">
         <div className="dv3-brand-icon-wrap">
           <img src={brand.logoIcon} alt="DevFlow logo" className="dv3-brand-icon" />
@@ -69,40 +97,44 @@ export const DashboardSidebar = ({ unreadCount = 0, authState }: SidebarProps) =
       </div>
 
       <nav className="dv3-nav">
-        <Link className={isActive(location.pathname, '/app') ? 'active' : ''} to="/app">
+        <Link className={isActive(location.pathname, '/app') ? 'active' : ''} to="/app" onClick={closeDrawer}>
           Dashboard
         </Link>
-        <Link className={isActive(location.pathname, '/app/issues') ? 'active' : ''} to="/app/issues">
+        <Link className={isActive(location.pathname, '/app/issues') ? 'active' : ''} to="/app/issues" onClick={closeDrawer}>
           Issues
         </Link>
-        <Link className={isActive(location.pathname, '/app/repositories') ? 'active' : ''} to="/app/repositories">
+        <Link className={isActive(location.pathname, '/app/repositories') ? 'active' : ''} to="/app/repositories" onClick={closeDrawer}>
           Repos
         </Link>
-        <Link className={isActive(location.pathname, '/app/taxonomy') ? 'active' : ''} to="/app/taxonomy">
+        <Link className={isActive(location.pathname, '/app/taxonomy') ? 'active' : ''} to="/app/taxonomy" onClick={closeDrawer}>
           Taxonomy
         </Link>
-        <Link className={isActive(location.pathname, '/app/milestones') ? 'active' : ''} to="/app/milestones">
+        <Link className={isActive(location.pathname, '/app/milestones') ? 'active' : ''} to="/app/milestones" onClick={closeDrawer}>
           Milestones
         </Link>
 
         <span className="dv3-nav-title">Insights</span>
-        <Link className={isActive(location.pathname, '/app/views') ? 'active' : ''} to="/app/views">
+        <Link className={isActive(location.pathname, '/app/views') ? 'active' : ''} to="/app/views" onClick={closeDrawer}>
           Saved Views
         </Link>
-        <Link className={isActive(location.pathname, '/app/analytics') ? 'active' : ''} to="/app/analytics">
+        <Link className={isActive(location.pathname, '/app/analytics') ? 'active' : ''} to="/app/analytics" onClick={closeDrawer}>
           Analytics
         </Link>
-        <Link className={isActive(location.pathname, '/app/notifications') ? 'active notify-link' : 'notify-link'} to="/app/notifications">
+        <Link
+          className={isActive(location.pathname, '/app/notifications') ? 'active notify-link' : 'notify-link'}
+          to="/app/notifications"
+          onClick={closeDrawer}
+        >
           Notifications
           <span>{liveUnreadCount}</span>
         </Link>
-        <Link className={isActive(location.pathname, '/app/ops') ? 'active' : ''} to="/app/ops">
+        <Link className={isActive(location.pathname, '/app/ops') ? 'active' : ''} to="/app/ops" onClick={closeDrawer}>
           Ops Tools
         </Link>
-        <Link className={isActive(location.pathname, '/app/activity') ? 'active' : ''} to="/app/activity">
+        <Link className={isActive(location.pathname, '/app/activity') ? 'active' : ''} to="/app/activity" onClick={closeDrawer}>
           Activity Log
         </Link>
-        <Link className={isActive(location.pathname, '/app/settings') ? 'active' : ''} to="/app/settings">
+        <Link className={isActive(location.pathname, '/app/settings') ? 'active' : ''} to="/app/settings" onClick={closeDrawer}>
           Settings
         </Link>
       </nav>
@@ -122,6 +154,7 @@ export const DashboardSidebar = ({ unreadCount = 0, authState }: SidebarProps) =
           </button>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 };

@@ -78,10 +78,9 @@ export const landingPageData: LandingPageData = {
     items: [
       { label: 'Features', href: '#features' },
       { label: 'How it Works', href: '#how-it-works' },
-      { label: 'About', href: '#about' },
-      { label: 'Pricing', href: '#pricing' }
+      { label: 'About', href: '/about' }
     ],
-    signInText: 'Sign In',
+    signInText: 'About',
     ctaText: 'Get Started Free'
   },
   hero: {

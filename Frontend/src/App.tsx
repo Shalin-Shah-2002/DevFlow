@@ -18,6 +18,7 @@ import { OpsToolsPage } from './views/ops/OpsToolsPage';
 import { MilestonesPage } from './views/milestones/MilestonesPage';
 import { ActivityLogPage } from './views/activity/ActivityLogPage';
 import { SettingsProfilePage } from './views/settings/SettingsProfilePage';
+import { AboutPage } from './views/about/AboutPage';
 import './styles/landing.css';
 import './styles/auth.css';
 import './styles/dashboard.css';
@@ -43,6 +44,7 @@ function App() {
           </PublicOnlyRoute>
         }
       />
+      <Route path="/about" element={<AboutPage />} />
       <Route path="/auth/success" element={<AuthSuccessPage />} />
       <Route path="/auth/error" element={<AuthErrorPage />} />
       <Route

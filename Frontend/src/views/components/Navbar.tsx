@@ -16,16 +16,19 @@ export const Navbar = ({ nav }: NavbarProps) => {
 
         <nav className="nav-links" aria-label="Primary navigation">
           {nav.items.map((item) => (
-            <a key={item.label} href={item.href} className="nav-link">
-              {item.label}
-            </a>
+            item.href.startsWith('#') ? (
+              <a key={item.label} href={item.href} className="nav-link">
+                {item.label}
+              </a>
+            ) : (
+              <Link key={item.label} to={item.href} className="nav-link">
+                {item.label}
+              </Link>
+            )
           ))}
         </nav>
 
         <div className="nav-actions">
-          <Link className="btn btn-ghost" to="/login">
-            {nav.signInText}
-          </Link>
           <Link className="btn btn-primary btn-sm" to="/login">
             {nav.ctaText}
           </Link>

@@ -311,6 +311,35 @@
   overflow: hidden;
 }
 
+.dv3-mobile-menu-btn,
+.dv3-drawer-backdrop {
+  display: none;
+}
+
+.dv3-mobile-menu-btn {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1200;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 8px 20px -14px rgba(15, 23, 42, 0.6);
+}
+
+.dv3-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1250;
+  background: rgba(15, 23, 42, 0.45);
+  border: 0;
+}
+
 .dv3-brand {
   display: flex;
   align-items: center;
@@ -4341,10 +4370,31 @@
   .dv3-page > main {
     height: auto;
     overflow-y: visible;
+    padding-top: 56px;
   }
 
   .dv3-sidebar {
-    display: none;
+    display: flex;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: min(84vw, 320px);
+    z-index: 1300;
+    transform: translateX(-105%);
+    transition: transform 0.24s ease;
+    box-shadow: 0 24px 48px -20px rgba(15, 23, 42, 0.65);
+  }
+
+  .dv3-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .dv3-mobile-menu-btn,
+  .dv3-drawer-backdrop {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .dv3-main {
