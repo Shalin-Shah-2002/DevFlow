@@ -398,14 +398,22 @@ export const syncLabelsFromGitHub = async (
     let updated = 0;
     const labels: any[] = [];
 
-    // Sync each label
+    // Sync each label — always scoped to the current repository
     for (const ghLabel of githubLabels) {
-      const existingLabel = await prisma.label.findUnique({
-        where: { githubId: BigInt(ghLabel.id) },
+      // Look up by repo + name first (repo-scoped unique key), then fall back to githubId
+      // This prevents cross-repo contamination when the same githubId is somehow reused
+      const existingLabel = await prisma.label.findFirst({
+        where: {
+          repositoryId,
+          OR: [
+            { githubId: BigInt(ghLabel.id) },
+            { name: ghLabel.name },
+          ],
+        },
       });
 
       if (existingLabel) {
-        // Update existing label
+        // Update the existing label that belongs to this specific repository
         const label = await prisma.label.update({
           where: { id: existingLabel.id },
           data: {
@@ -420,7 +428,7 @@ export const syncLabelsFromGitHub = async (
         });
         updated++;
       } else {
-        // Create new label
+        // Create new label scoped to this repository
         try {
           const label = await prisma.label.create({
             data: {
@@ -437,20 +445,25 @@ export const syncLabelsFromGitHub = async (
           });
           created++;
         } catch (error: any) {
-          // Handle unique constraint violation (label name conflict)
+          // P2002 means the githubId global unique constraint was hit by another repo's label
+          // Fall back to upsert by repositoryId+name (the repo-scoped unique key)
           if (error.code === 'P2002') {
-            // Try updating by repository and name
-            const label = await prisma.label.update({
+            const label = await prisma.label.upsert({
               where: {
                 repositoryId_name: {
                   repositoryId,
                   name: ghLabel.name,
                 },
               },
-              data: {
-                githubId: BigInt(ghLabel.id),
+              update: {
                 color: ghLabel.color,
                 description: ghLabel.description,
+              },
+              create: {
+                name: ghLabel.name,
+                color: ghLabel.color,
+                description: ghLabel.description,
+                repositoryId,
               },
             });
             labels.push({

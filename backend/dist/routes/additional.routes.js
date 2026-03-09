@@ -79,6 +79,7 @@ router.get('/activity-log', [
  */
 router.get('/search', [
     (0, express_validator_1.query)('q').trim().notEmpty().withMessage('Query parameter "q" is required'),
+    (0, express_validator_1.query)('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer'),
     (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 50 }).withMessage('limit must be between 1 and 50'),
     validation_middleware_1.validate,
 ], additional_controller_1.AdditionalController.search);

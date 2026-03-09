@@ -44,13 +44,14 @@ const request = async <T>(
 
 const toDate = (value?: string) => (value ? new Date(value).toLocaleString() : '');
 
-export const getSavedViews = async (token: string): Promise<SavedView[]> => {
-  const response = await request<{ success: boolean; data: SavedView[] }>(token, '/views', 'GET');
-  return (response.data || []).map((item) => ({
+export const getSavedViews = async (token: string, page = 1, limit = 50): Promise<{ data: SavedView[]; pagination?: { total: number; page: number; limit: number; totalPages: number } }> => {
+  const response = await request<{ success: boolean; data: SavedView[]; pagination?: { total: number; page: number; limit: number; totalPages: number } }>(token, `/views?page=${page}&limit=${limit}`, 'GET');
+  const data = (response.data || []).map((item) => ({
     ...item,
     createdAt: toDate(item.createdAt),
     updatedAt: toDate(item.updatedAt)
   }));
+  return { data, pagination: response.pagination };
 };
 
 export const createSavedView = async (

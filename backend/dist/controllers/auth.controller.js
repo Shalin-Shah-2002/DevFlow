@@ -24,7 +24,9 @@ const auth_service_1 = require("../services/auth.service");
 class AuthController {
     static getFrontendUrl() {
         const rawUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-        return rawUrl.replace(/\/$/, '');
+        // Support comma-separated list of allowed origins; use the first one for redirects
+        const primaryUrl = rawUrl.split(',')[0].trim();
+        return primaryUrl.replace(/\/$/, '');
     }
     /**
      * @swagger

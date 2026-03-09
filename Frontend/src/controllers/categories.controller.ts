@@ -57,9 +57,10 @@ const apiRequest = async <T>(
   return payload;
 };
 
-export const getCategories = async (token: string): Promise<CategoryItem[]> => {
-  const response = await apiRequest<CategoriesListResponse>(token, '/categories', 'GET');
-  return (response.data || []).map(normalizeCategory);
+export const getCategories = async (token: string, page = 1, limit = 50): Promise<{ data: CategoryItem[]; pagination?: { total: number; page: number; limit: number; totalPages: number } }> => {
+  const response = await apiRequest<CategoriesListResponse>(token, `/categories?page=${page}&limit=${limit}`, 'GET');
+  const data = (response.data || []).map(normalizeCategory);
+  return { data, pagination: response.pagination };
 };
 
 export const createCategory = async (token: string, payload: CreateCategoryPayload): Promise<CategoryItem> => {

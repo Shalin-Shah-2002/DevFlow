@@ -442,6 +442,12 @@ class AdditionalController {
      *           type: string
      *         description: Search query string
      *       - in: query
+     *         name: page
+     *         schema:
+     *           type: integer
+     *           default: 1
+     *         description: Page number
+     *       - in: query
      *         name: limit
      *         schema:
      *           type: integer
@@ -470,6 +476,17 @@ class AdditionalController {
      *                         type: object
      *                     totalResults:
      *                       type: integer
+     *                     pagination:
+     *                       type: object
+     *                       properties:
+     *                         page:
+     *                           type: integer
+     *                         limit:
+     *                           type: integer
+     *                         total:
+     *                           type: integer
+     *                         totalPages:
+     *                           type: integer
      *       400:
      *         description: Query parameter is required
      *       401:
@@ -478,12 +495,12 @@ class AdditionalController {
     static async search(req, res) {
         try {
             const userId = req.user.id;
-            const { q, limit = '10' } = req.query;
+            const { q, limit = '10', page = '1' } = req.query;
             if (!q) {
                 res.status(400).json({ success: false, error: 'Query parameter "q" is required' });
                 return;
             }
-            const result = await additional_service_1.AdditionalService.globalSearch(userId, q, parseInt(limit, 10));
+            const result = await additional_service_1.AdditionalService.globalSearch(userId, q, parseInt(page, 10), parseInt(limit, 10));
             res.json({ success: true, data: result });
         }
         catch (error) {

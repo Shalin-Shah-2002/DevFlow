@@ -3645,6 +3645,37 @@
   padding: 14px 16px;
   color: #64748b;
   font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.issues-pagination-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.issues-pagination-controls button {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  border-radius: 8px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.issues-pagination-controls button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.issues-pagination-controls span {
+  color: #475569;
 }
 
 .issue-create-modal-backdrop {
@@ -3765,6 +3796,19 @@
 .label-item-head small {
   color: #64748b;
   font-size: 12px;
+}
+
+.label-repo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: default;
 }
 
 .label-item p {
@@ -4867,6 +4911,7 @@
   .dv3-header-actions .icon-btn,
   .saved-view-foot button,
   .saved-view-actions button,
+  .issues-pagination-controls button,
   .notifications-actions button,
   .ops-grid button,
   .settings-profile-footer button,

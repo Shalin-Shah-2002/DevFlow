@@ -95,9 +95,9 @@ export const IssueDetailPage = () => {
     Promise.all([loadIssueData(), getCategories(state.token)])
       .then(([, categoriesPayload]) => {
         setError(null);
-        setCategories(categoriesPayload || []);
-        if ((categoriesPayload || []).length > 0) {
-          setSelectedCategoryId(categoriesPayload[0].id);
+        setCategories(categoriesPayload.data || []);
+        if ((categoriesPayload.data || []).length > 0) {
+          setSelectedCategoryId(categoriesPayload.data[0].id);
         }
       })
       .catch(() => setError('Failed to load issue detail.'))

@@ -86,4 +86,5 @@ export type IssuesListQuery = {
   search?: string;
   sort?: 'created' | 'updated' | 'priority' | 'comments';
   order?: 'asc' | 'desc';
+  repositoryId?: string;
 };

@@ -22,7 +22,11 @@ router.use(auth_middleware_1.authMiddleware);
  * @desc    Get all categories for authenticated user
  * @access  Private
  */
-router.get('/', category_controller_1.getCategories);
+router.get('/', [
+    (0, express_validator_1.query)('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer'),
+    (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }).withMessage('limit must be between 1 and 100'),
+    validation_middleware_1.validate,
+], category_controller_1.getCategories);
 /**
  * @route   POST /api/categories
  * @desc    Create a new category

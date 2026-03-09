@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { RepositoryService } from '../services/repository.service';
+import { IssueService } from '../services/issue.service';
 
 /**
  * @swagger
@@ -95,6 +96,97 @@ export class RepositoryController {
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to fetch repositories',
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/repositories/{id}/issues:
+   *   get:
+   *     summary: List issues for a repository
+   *     description: Get paginated issues for one repository with optional filters
+   *     tags: [Repositories]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Repository ID
+   *       - in: query
+   *         name: state
+   *         schema:
+   *           type: string
+   *           enum: [open, closed, all]
+   *       - in: query
+   *         name: search
+   *         schema:
+   *           type: string
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 20
+   *       - in: query
+   *         name: sort
+   *         schema:
+   *           type: string
+   *           enum: [created, updated, priority, comments]
+   *       - in: query
+   *         name: order
+   *         schema:
+   *           type: string
+   *           enum: [asc, desc]
+   *     responses:
+   *       200:
+   *         description: Repository issues list
+   *       401:
+   *         description: Unauthorized
+   */
+  static async getRepositoryIssues(req: Request, res: Response): Promise<void> {
+    try {
+      const user = req.user as { id: string } | undefined;
+      if (!user) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      const { id } = req.params;
+      if (typeof id !== 'string' || !id) {
+        res.status(400).json({ success: false, error: 'Invalid repository ID' });
+        return;
+      }
+
+      const { state, priority, label, assignee, search, category, milestone, page, limit, sort, order } = req.query;
+
+      const result = await IssueService.getIssues(user.id, {
+        repositoryId: id,
+        state: state as 'open' | 'closed' | 'all' | undefined,
+        priority: typeof priority === 'string' ? priority.split(',') : undefined,
+        label: typeof label === 'string' ? label.split(',') : undefined,
+        assignee: assignee as string | undefined,
+        search: search as string | undefined,
+        categoryId: category as string | undefined,
+        milestoneId: milestone as string | undefined,
+        page: page ? parseInt(page as string, 10) : 1,
+        limit: limit ? parseInt(limit as string, 10) : 20,
+        sort: sort as 'created' | 'updated' | 'priority' | 'comments' | undefined,
+        order: order as 'asc' | 'desc' | undefined,
+      });
+
+      res.status(200).json(result);
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to fetch repository issues',
       });
     }
   }

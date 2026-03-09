@@ -1163,10 +1163,10 @@ export class IssueService {
       if (!label) {
         label = await prisma.label.create({
           data: {
-            githubId: githubLabel.id,
+            githubId: BigInt(githubLabel.id),
             name: githubLabel.name,
             color: githubLabel.color,
-            description: githubLabel.description,
+            description: githubLabel.description ?? null,
             repositoryId,
           },
         });

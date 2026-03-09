@@ -40,19 +40,19 @@ export const getSettings = async (token: string) => request<{ success: boolean; 
 export const updateSettings = async (token: string, payload: Record<string, unknown>) =>
   request<{ success: boolean }>(token, '/settings', 'PUT', payload);
 
-export const getMilestones = async (token: string) =>
-  request<{ success: boolean; data: unknown[] }>(token, '/milestones?page=1&limit=50', 'GET');
+export const getMilestones = async (token: string, page = 1, limit = 50) =>
+  request<{ success: boolean; data: unknown[]; pagination?: any }>(token, `/milestones?page=${page}&limit=${limit}`, 'GET');
 
 export const createMilestone = async (token: string, payload: Record<string, unknown>) =>
   request<{ success: boolean }>(token, '/milestones', 'POST', payload);
 
-export const getActivityLog = async (token: string) =>
-  request<{ success: boolean; data: unknown[] }>(token, '/activity-log?page=1&limit=20', 'GET');
+export const getActivityLog = async (token: string, page = 1, limit = 20) =>
+  request<{ success: boolean; data: unknown[]; pagination?: any }>(token, `/activity-log?page=${page}&limit=${limit}`, 'GET');
 
-export const globalSearch = async (token: string, q: string) =>
-  request<{ success: boolean; data: { totalResults: number } }>(token, `/search?q=${encodeURIComponent(q)}`, 'GET');
+export const globalSearch = async (token: string, q: string, page = 1, limit = 50) =>
+  request<{ success: boolean; data: { totalResults: number }; pagination?: { total: number; page: number; limit: number; totalPages: number } }>(token, `/search?q=${encodeURIComponent(q)}&page=${page}&limit=${limit}`, 'GET');
 
-export const getTeams = async (token: string) => request<{ success: boolean; data: unknown[] }>(token, '/teams?page=1&limit=20', 'GET');
+export const getTeams = async (token: string, page = 1, limit = 20) => request<{ success: boolean; data: unknown[]; pagination?: any }>(token, `/teams?page=${page}&limit=${limit}`, 'GET');
 
 export const createTeam = async (token: string, payload: { name: string; description?: string }) =>
   request<{ success: boolean }>(token, '/teams', 'POST', payload);

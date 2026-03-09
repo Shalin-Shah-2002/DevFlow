@@ -83,14 +83,35 @@ export const LabelsManagementPage = () => {
       .finally(() => setLoading(false));
   }, [state.token, repositoryFilter, search]);
 
+  // When viewing all repositories, deduplicate labels by name so default
+  // GitHub labels (bug, enhancement, etc.) don't appear N times — once per repo.
+  const displayLabels = useMemo(() => {
+    if (repositoryFilter !== 'all') return labels;
+
+    const map = new Map<string, LabelItem & { repoCount: number; repoNames: string[] }>();
+    for (const label of labels) {
+      const key = label.name.toLowerCase();
+      const existing = map.get(key);
+      const repoName = label.repository?.fullName ?? label.repositoryId;
+      if (existing) {
+        existing.issueCount += label.issueCount;
+        existing.repoCount += 1;
+        existing.repoNames.push(repoName);
+      } else {
+        map.set(key, { ...label, repoCount: 1, repoNames: [repoName] });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [labels, repositoryFilter]);
+
   const summary = useMemo(() => {
-    const total = labels.length;
-    const withDescription = labels.filter((item) => item.description).length;
-    const linkedIssues = labels.reduce((sum, item) => sum + item.issueCount, 0);
+    const total = displayLabels.length;
+    const withDescription = displayLabels.filter((item) => item.description).length;
+    const linkedIssues = displayLabels.reduce((sum, item) => sum + item.issueCount, 0);
     const reposUsed = new Set(labels.map((item) => item.repositoryId)).size;
 
     return { total, withDescription, linkedIssues, reposUsed };
-  }, [labels]);
+  }, [labels, displayLabels]);
 
   const handleCreateLabel = async () => {
     if (!state.token || !name.trim() || !createRepoId) {
@@ -290,57 +311,84 @@ export const LabelsManagementPage = () => {
 
           {!loading && labels.length > 0 && (
             <div className="labels-list">
-              {labels.map((label) => (
-                <article key={label.id} className="label-item">
-                  <div className="label-item-head">
-                    <span className="label-chip" style={{ backgroundColor: `#${label.color}` }}>
-                      {label.name}
-                    </span>
-                    <small>{label.repository?.fullName || 'Unknown repository'}</small>
-                  </div>
+              {displayLabels.map((label) => {
+                const grouped = repositoryFilter === 'all' && (label as any).repoCount > 1;
+                const repoNames: string[] = (label as any).repoNames ?? [label.repository?.fullName ?? label.repositoryId];
 
-                  {editingId === label.id ? (
-                    <div className="label-item-edit-grid">
-                      <input value={editName} onChange={(event) => setEditName(event.target.value)} />
-                      <input value={editColor} onChange={(event) => setEditColor(event.target.value.replace('#', ''))} />
-                      <input value={editDescription} onChange={(event) => setEditDescription(event.target.value)} />
-                      <div className="label-item-actions">
-                        <button
-                          type="button"
-                          disabled={busyKey === `edit-${label.id}`}
-                          onClick={() => void handleSaveEdit(label.id)}
-                        >
-                          Save
-                        </button>
-                        <button type="button" className="ghost" onClick={() => setEditingId(null)}>
-                          Cancel
-                        </button>
-                      </div>
+                return (
+                  <article key={label.id} className="label-item">
+                    <div className="label-item-head">
+                      <span className="label-chip" style={{ backgroundColor: `#${label.color}` }}>
+                        {label.name}
+                      </span>
+                      {grouped ? (
+                        <span className="label-repo-badge" title={repoNames.join(', ')}>
+                          {repoNames.length} repos
+                        </span>
+                      ) : (
+                        <small>{label.repository?.fullName || 'Unknown repository'}</small>
+                      )}
                     </div>
-                  ) : (
-                    <>
-                      <p>{label.description || 'No description'}</p>
-                      <div className="label-item-meta">
-                        <span>Issues: {label.issueCount}</span>
-                        <span>Created: {label.createdAt}</span>
+
+                    {editingId === label.id ? (
+                      <div className="label-item-edit-grid">
+                        <input value={editName} onChange={(event) => setEditName(event.target.value)} />
+                        <input value={editColor} onChange={(event) => setEditColor(event.target.value.replace('#', ''))} />
+                        <input value={editDescription} onChange={(event) => setEditDescription(event.target.value)} />
+                        <div className="label-item-actions">
+                          <button
+                            type="button"
+                            disabled={busyKey === `edit-${label.id}`}
+                            onClick={() => void handleSaveEdit(label.id)}
+                          >
+                            Save
+                          </button>
+                          <button type="button" className="ghost" onClick={() => setEditingId(null)}>
+                            Cancel
+                          </button>
+                        </div>
                       </div>
-                      <div className="label-item-actions">
-                        <button type="button" onClick={() => startEdit(label)}>
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="danger"
-                          disabled={busyKey === `delete-${label.id}`}
-                          onClick={() => void handleDeleteLabel(label.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </article>
-              ))}
+                    ) : (
+                      <>
+                        <p>{label.description || 'No description'}</p>
+                        <div className="label-item-meta">
+                          <span>Issues: {label.issueCount}</span>
+                          {!grouped && <span>Created: {label.createdAt}</span>}
+                        </div>
+                        {!grouped && (
+                          <div className="label-item-actions">
+                            <button type="button" onClick={() => startEdit(label)}>
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="danger"
+                              disabled={busyKey === `delete-${label.id}`}
+                              onClick={() => void handleDeleteLabel(label.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                        {grouped && (
+                          <div className="label-item-actions">
+                            <button
+                              type="button"
+                              className="ghost"
+                              onClick={() => {
+                                const repo = repositories.find((r) => repoNames.includes(r.fullName));
+                                if (repo) setRepositoryFilter(repo.id);
+                              }}
+                            >
+                              Filter by repo to edit
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>

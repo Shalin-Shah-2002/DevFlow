@@ -9,16 +9,22 @@ import { DashboardSidebar } from '../dashboard/components/DashboardSidebar';
 import { getRepositoriesOverview } from '../../controllers/repositories.controller';
 import type { RepositoryItem } from '../../models/repositories.model';
 
+const PAGE_SIZE = 6;
+
 export const IssuesListPage = () => {
   const { state } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [issues, setIssues] = useState<IssueListItem[]>([]);
   const [repositories, setRepositories] = useState<RepositoryItem[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalIssues, setTotalIssues] = useState(0);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(searchParams.get('new') === '1');
   const [search, setSearch] = useState('');
   const [filterState, setFilterState] = useState<'all' | 'open' | 'closed'>('all');
+  const [filterRepository, setFilterRepository] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'created' | 'updated' | 'priority' | 'comments'>('updated');
   const [createRepositoryId, setCreateRepositoryId] = useState('');
   const [createTitle, setCreateTitle] = useState('');
@@ -32,23 +38,27 @@ export const IssuesListPage = () => {
       return;
     }
 
+    setLoading(true);
     getIssuesList(state.token, {
-      limit: 20,
-      page: 1,
+      limit: PAGE_SIZE,
+      page: currentPage,
       state: filterState,
       search,
       sort: sortBy,
-      order: 'desc'
+      order: 'desc',
+      repositoryId: filterRepository
     })
       .then((response) => {
         setError(null);
         setIssues(response.data || []);
+        setTotalPages(response.pagination?.totalPages || 1);
+        setTotalIssues(response.pagination?.total || 0);
       })
       .catch(() => {
         setError('Failed to load issues.');
       })
       .finally(() => setLoading(false));
-  }, [state.token, filterState, search, sortBy]);
+  }, [state.token, filterState, search, sortBy, currentPage, filterRepository]);
 
   useEffect(() => {
     if (!state.token) {
@@ -110,14 +120,18 @@ export const IssuesListPage = () => {
       setCreatePriority('');
       setCreateMessage('Issue created successfully.');
       const refreshed = await getIssuesList(state.token, {
-        limit: 20,
+        limit: PAGE_SIZE,
         page: 1,
         state: filterState,
         search,
         sort: sortBy,
-        order: 'desc'
+        order: 'desc',
+        repositoryId: filterRepository
       });
+      setCurrentPage(1);
       setIssues(refreshed.data || []);
+      setTotalPages(refreshed.pagination?.totalPages || 1);
+      setTotalIssues(refreshed.pagination?.total || 0);
       clearCreateQuery();
       setShowCreateModal(false);
     } catch (createError) {
@@ -129,9 +143,14 @@ export const IssuesListPage = () => {
 
   const clearFilters = () => {
     setFilterState('all');
+    setFilterRepository('all');
     setSortBy('updated');
     setSearch('');
+    setCurrentPage(1);
   };
+
+  const rangeStart = totalIssues === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(currentPage * PAGE_SIZE, totalIssues);
 
   const stats = useMemo(() => {
     const open = issues.filter((item) => item.state === 'open').length;
@@ -168,14 +187,41 @@ export const IssuesListPage = () => {
               <span>🔎</span>
               <input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setCurrentPage(1);
+                }}
                 placeholder="Search issues, labels, authors..."
               />
             </label>
 
             <div className="issues-sort-wrap">
+              <span>Repository</span>
+              <select
+                value={filterRepository}
+                onChange={(event) => {
+                  setFilterRepository(event.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="all">All Repositories</option>
+                {repositories.map((repo) => (
+                  <option key={repo.id} value={repo.id}>
+                    {repo.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="issues-sort-wrap">
               <span>Sort by</span>
-              <select value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)}>
+              <select
+                value={sortBy}
+                onChange={(event) => {
+                  setSortBy(event.target.value as typeof sortBy);
+                  setCurrentPage(1);
+                }}
+              >
                 <option value="updated">Updated</option>
                 <option value="created">Created</option>
                 <option value="priority">Priority</option>
@@ -185,20 +231,33 @@ export const IssuesListPage = () => {
           </div>
 
           <div className="issues-filter-bottom">
-            <button type="button" className={filterState === 'all' ? 'active' : ''} onClick={() => setFilterState('all')}>
+            <button
+              type="button"
+              className={filterState === 'all' ? 'active' : ''}
+              onClick={() => {
+                setFilterState('all');
+                setCurrentPage(1);
+              }}
+            >
               All
             </button>
             <button
               type="button"
               className={filterState === 'open' ? 'active' : ''}
-              onClick={() => setFilterState('open')}
+              onClick={() => {
+                setFilterState('open');
+                setCurrentPage(1);
+              }}
             >
               Open
             </button>
             <button
               type="button"
               className={filterState === 'closed' ? 'active' : ''}
-              onClick={() => setFilterState('closed')}
+              onClick={() => {
+                setFilterState('closed');
+                setCurrentPage(1);
+              }}
             >
               Closed
             </button>
@@ -252,9 +311,25 @@ export const IssuesListPage = () => {
 
           <footer className="issues-pagination-note">
             <span>
-              Showing <strong>{issues.length}</strong> issues • Open <strong>{stats.open}</strong> • Closed{' '}
-              <strong>{stats.closed}</strong>
+              Showing <strong>{rangeStart}</strong>-<strong>{rangeEnd}</strong> of <strong>{totalIssues}</strong> issues •
+              Open <strong>{stats.open}</strong> • Closed <strong>{stats.closed}</strong>
             </span>
+
+            <div className="issues-pagination-controls">
+              <button type="button" onClick={() => setCurrentPage((value) => Math.max(1, value - 1))} disabled={currentPage <= 1 || loading}>
+                Previous
+              </button>
+              <span>
+                Page <strong>{currentPage}</strong> of <strong>{Math.max(totalPages, 1)}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((value) => Math.min(totalPages, value + 1))}
+                disabled={currentPage >= totalPages || loading}
+              >
+                Next
+              </button>
+            </div>
           </footer>
         </section>
 

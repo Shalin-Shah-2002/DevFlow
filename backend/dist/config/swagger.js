@@ -145,11 +145,21 @@ const swaggerDefinition = {
         },
     ],
 };
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const options = {
     swaggerDefinition,
-    apis: ['./src/routes/*.ts', './src/controllers/*.ts'], // Path to the API routes
+    apis: ['./src/routes/*.ts', './src/controllers/*.ts'],
 };
-exports.swaggerSpec = (0, swagger_jsdoc_1.default)(options);
+function loadSwaggerSpec() {
+    // In production, use the pre-generated swagger.json
+    const prebuilt = path_1.default.join(process.cwd(), 'swagger.json');
+    if (fs_1.default.existsSync(prebuilt)) {
+        return JSON.parse(fs_1.default.readFileSync(prebuilt, 'utf-8'));
+    }
+    return (0, swagger_jsdoc_1.default)(options);
+}
+exports.swaggerSpec = loadSwaggerSpec();
 exports.swaggerUiOptions = {
     customCss: '.swagger-ui .topbar { display: none }',
     customSiteTitle: 'DevFlow API Docs',

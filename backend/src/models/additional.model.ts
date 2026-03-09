@@ -191,6 +191,12 @@ export interface SearchResult {
     language: string | null;
   }>;
   totalResults: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 // ── Export ───────────────────────────────────────────────────────────────────

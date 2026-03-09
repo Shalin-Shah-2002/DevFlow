@@ -28,28 +28,38 @@ dotenv_1.default.config();
 // Initialize Express app
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3001;
+// Swagger must be mounted BEFORE helmet to avoid CSP blocking its assets
+app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.swaggerSpec, swagger_1.swaggerUiOptions));
+app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swagger_1.swaggerSpec);
+});
 // Security Middleware
-// Disable helmet in development to avoid CSP issues
-if (process.env.NODE_ENV === 'production') {
-    app.use((0, helmet_1.default)({
-        contentSecurityPolicy: {
-            directives: {
-                defaultSrc: ["'self'"],
-                styleSrc: ["'self'", "'unsafe-inline'"],
-                scriptSrc: ["'self'", "'unsafe-inline'"],
-                imgSrc: ["'self'", 'data:', 'https:'],
-            },
+app.use((0, helmet_1.default)({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", 'data:', 'https:'],
+            upgradeInsecureRequests: null, // disable — server runs on plain HTTP
         },
-    }));
-}
-else {
-    // In development, use helmet but disable CSP
-    app.use((0, helmet_1.default)({ contentSecurityPolicy: false }));
-}
+    },
+}));
 // CORS Configuration - Allow all origins in development
 if (process.env.NODE_ENV === 'production') {
+    const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000')
+        .split(',')
+        .map((o) => o.trim());
     app.use((0, cors_1.default)({
-        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            }
+            else {
+                callback(new Error(`CORS: origin ${origin} not allowed`));
+            }
+        },
         credentials: true,
     }));
 }
@@ -60,7 +70,7 @@ else {
 if (process.env.NODE_ENV === 'production') {
     const limiter = (0, express_rate_limit_1.default)({
         windowMs: 15 * 60 * 1000, // 15 minutes
-        max: 100, // Limit each IP to 100 requests per windowMs
+        max: 500, // Limit each IP to 500 requests per windowMs
         message: 'Too many requests from this IP, please try again later.',
     });
     app.use('/api/', limiter);
@@ -83,13 +93,6 @@ app.get('/', (req, res) => {
     });
 });
 // /api/health is handled by additionalRoutes (with real DB connectivity check)
-// Swagger API Documentation
-app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.swaggerSpec, swagger_1.swaggerUiOptions));
-// Swagger JSON endpoint
-app.get('/api-docs.json', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(swagger_1.swaggerSpec);
-});
 // API Routes
 app.use('/api/auth', auth_routes_1.default);
 app.use('/api/repositories', repository_routes_1.default);

@@ -1,3 +1,10 @@
+export type PaginationInfo = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
 export type CategoryItem = {
   id: string;
   name: string;
@@ -9,6 +16,7 @@ export type CategoryItem = {
 export type CategoriesListResponse = {
   success: boolean;
   data: CategoryItem[];
+  pagination?: PaginationInfo;
 };
 
 export type CategoryResponse = {

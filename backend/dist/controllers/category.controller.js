@@ -35,6 +35,19 @@ const categoryService = new category_service_1.CategoryService();
  *     tags: [Categories]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Items per page (max 100)
  *     responses:
  *       200:
  *         description: List of categories
@@ -50,6 +63,17 @@ const categoryService = new category_service_1.CategoryService();
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Category'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
  *       401:
  *         description: Unauthorized
  *       500:
@@ -61,10 +85,12 @@ const categoryService = new category_service_1.CategoryService();
 const getCategories = async (req, res) => {
     try {
         const userId = req.user.id;
-        const categories = await categoryService.getCategories(userId);
+        const page = req.query.page ? parseInt(req.query.page) : 1;
+        const limit = req.query.limit ? parseInt(req.query.limit) : 20;
+        const result = await categoryService.getCategories(userId, page, limit);
         return res.status(200).json({
             success: true,
-            data: categories,
+            ...result,
         });
     }
     catch (error) {

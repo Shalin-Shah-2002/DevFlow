@@ -42,6 +42,14 @@ const jwt = __importStar(require("jsonwebtoken"));
 const prisma_1 = __importDefault(require("../config/prisma"));
 const models_1 = require("../models");
 class AuthService {
+    static resolveUserEmail(githubUser) {
+        const rawEmail = githubUser.email?.trim();
+        if (rawEmail) {
+            return rawEmail.toLowerCase();
+        }
+        // GitHub may not return a public/verified email; use a deterministic fallback.
+        return `${githubUser.login.toLowerCase()}@users.noreply.github.com`;
+    }
     /**
      * Generate GitHub OAuth URL
      */
@@ -124,10 +132,11 @@ class AuthService {
             tokenExpiry.setFullYear(tokenExpiry.getFullYear() + 1); // 1 year from now
             // Convert GitHub user ID to BigInt for Prisma
             const githubIdBigInt = BigInt(githubUser.id);
+            const resolvedEmail = AuthService.resolveUserEmail(githubUser);
             const user = await prisma_1.default.user.upsert({
                 where: { githubId: githubIdBigInt },
                 update: {
-                    email: githubUser.email,
+                    email: resolvedEmail,
                     name: githubUser.name,
                     avatar: githubUser.avatar_url,
                     githubLogin: githubUser.login,
@@ -136,7 +145,7 @@ class AuthService {
                 },
                 create: {
                     githubId: githubIdBigInt,
-                    email: githubUser.email,
+                    email: resolvedEmail,
                     name: githubUser.name,
                     avatar: githubUser.avatar_url,
                     githubLogin: githubUser.login,
@@ -148,7 +157,7 @@ class AuthService {
         }
         catch (error) {
             console.error('Error creating/updating user:', error);
-            throw new Error('Failed to create or update user');
+            throw new Error(error instanceof Error ? `Failed to create or update user: ${error.message}` : 'Failed to create or update user');
         }
     }
     /**

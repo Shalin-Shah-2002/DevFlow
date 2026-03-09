@@ -80,13 +80,29 @@ export class ViewsService {
   }
 
   // ─── 6.1 Get All Saved Views ──────────────────────────────────────────────
-  async getViews(userId: string) {
-    const views = await prisma.savedView.findMany({
-      where: { userId },
-      orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
-    });
+  async getViews(userId: string, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    const where = { userId };
 
-    return views;
+    const [views, total] = await Promise.all([
+      prisma.savedView.findMany({
+        where,
+        orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
+        skip,
+        take: limit,
+      }),
+      prisma.savedView.count({ where }),
+    ]);
+
+    return {
+      data: views,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   // ─── 6.2 Create Saved View ────────────────────────────────────────────────

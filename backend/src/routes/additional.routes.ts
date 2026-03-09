@@ -16,6 +16,15 @@ const router = Router();
  */
 router.get('/health', AdditionalController.getHealth);
 
+// ── Public webhook receiver (called by GitHub, no auth token) ───────────
+
+/**
+ * @route   POST /api/webhooks/github
+ * @desc    Receive and process GitHub webhook events
+ * @access  Public (verified by X-Hub-Signature-256)
+ */
+router.post('/webhooks/github', AdditionalController.handleGitHubWebhook);
+
 // ── All remaining routes require authentication ──────────────────────────
 router.use(authMiddleware);
 
@@ -109,6 +118,7 @@ router.get(
   '/search',
   [
     query('q').trim().notEmpty().withMessage('Query parameter "q" is required'),
+    query('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer'),
     query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('limit must be between 1 and 50'),
     validate,
   ],

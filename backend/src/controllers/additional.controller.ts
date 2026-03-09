@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { AdditionalService } from '../services/additional.service';
 
 /**
@@ -432,6 +433,12 @@ export class AdditionalController {
    *           type: string
    *         description: Search query string
    *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *         description: Page number
+   *       - in: query
    *         name: limit
    *         schema:
    *           type: integer
@@ -460,6 +467,17 @@ export class AdditionalController {
    *                         type: object
    *                     totalResults:
    *                       type: integer
+   *                     pagination:
+   *                       type: object
+   *                       properties:
+   *                         page:
+   *                           type: integer
+   *                         limit:
+   *                           type: integer
+   *                         total:
+   *                           type: integer
+   *                         totalPages:
+   *                           type: integer
    *       400:
    *         description: Query parameter is required
    *       401:
@@ -468,14 +486,14 @@ export class AdditionalController {
   static async search(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user!.id;
-      const { q, limit = '10' } = req.query as Record<string, string>;
+      const { q, limit = '10', page = '1' } = req.query as Record<string, string>;
 
       if (!q) {
         res.status(400).json({ success: false, error: 'Query parameter "q" is required' });
         return;
       }
 
-      const result = await AdditionalService.globalSearch(userId, q, parseInt(limit, 10));
+      const result = await AdditionalService.globalSearch(userId, q, parseInt(page, 10), parseInt(limit, 10));
       res.json({ success: true, data: result });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -914,6 +932,235 @@ export class AdditionalController {
       });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  // ── GitHub Webhook Receiver ────────────────────────────────────────────────
+
+  /**
+   * POST /api/webhooks/github
+   * Receives and processes incoming GitHub webhook events.
+   * Verifies the X-Hub-Signature-256 header using HMAC-SHA256.
+   */
+  static async handleGitHubWebhook(req: Request, res: Response): Promise<void> {
+    const secret = process.env.WEBHOOK_SECRET || 'your_webhook_secret';
+    const signature = req.headers['x-hub-signature-256'] as string | undefined;
+
+    // Verify signature when a secret is configured
+    if (secret !== 'your_webhook_secret') {
+      if (!signature || !req.rawBody) {
+        res.status(400).json({ error: 'Missing signature or body' });
+        return;
+      }
+      const expected = `sha256=${createHmac('sha256', secret).update(req.rawBody).digest('hex')}`;
+      try {
+        if (!timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+          res.status(401).json({ error: 'Invalid signature' });
+          return;
+        }
+      } catch {
+        res.status(401).json({ error: 'Invalid signature' });
+        return;
+      }
+    }
+
+    const event = req.headers['x-github-event'] as string | undefined;
+    const payload = req.body as any;
+
+    try {
+      const prisma = (await import('../config/prisma')).default;
+
+      // Identify the repository from the payload
+      const githubRepoId = payload?.repository?.id;
+      if (!githubRepoId) {
+        res.status(200).json({ received: true, skipped: 'no repository in payload' });
+        return;
+      }
+
+      const repository = await prisma.repository.findFirst({
+        where: { githubId: BigInt(githubRepoId) },
+      });
+
+      if (!repository) {
+        res.status(200).json({ received: true, skipped: 'repository not tracked' });
+        return;
+      }
+
+      const repositoryId = repository.id;
+
+      switch (event) {
+        // ── Issues ──────────────────────────────────────────────────────────
+        case 'issues': {
+          const { action, issue: ghIssue } = payload;
+
+          if (action === 'opened') {
+            const existing = await prisma.issue.findUnique({ where: { githubId: BigInt(ghIssue.id) } });
+            if (!existing) {
+              const creator = ghIssue.user
+                ? await prisma.user.findUnique({ where: { githubId: ghIssue.user.id } })
+                : null;
+              await prisma.issue.create({
+                data: {
+                  githubId: BigInt(ghIssue.id),
+                  repositoryId,
+                  number: ghIssue.number,
+                  title: ghIssue.title,
+                  body: ghIssue.body ?? null,
+                  state: ghIssue.state,
+                  stateReason: ghIssue.state_reason ?? null,
+                  creatorId: creator?.id ?? null,
+                  githubCreatedAt: new Date(ghIssue.created_at),
+                  githubUpdatedAt: new Date(ghIssue.updated_at),
+                  closedAt: ghIssue.closed_at ? new Date(ghIssue.closed_at) : null,
+                },
+              });
+            }
+          } else if (action === 'closed' || action === 'reopened' || action === 'edited') {
+            const existing = await prisma.issue.findUnique({ where: { githubId: BigInt(ghIssue.id) } });
+            if (existing) {
+              await prisma.issue.update({
+                where: { id: existing.id },
+                data: {
+                  title: ghIssue.title,
+                  body: ghIssue.body ?? null,
+                  state: ghIssue.state,
+                  stateReason: ghIssue.state_reason ?? null,
+                  githubUpdatedAt: new Date(ghIssue.updated_at),
+                  closedAt: ghIssue.closed_at ? new Date(ghIssue.closed_at) : null,
+                },
+              });
+            }
+          } else if (action === 'labeled' || action === 'unlabeled') {
+            const existing = await prisma.issue.findUnique({ where: { githubId: BigInt(ghIssue.id) } });
+            if (existing) {
+              // Re-sync all labels for this issue from the current payload
+              await prisma.issueLabel.deleteMany({ where: { issueId: existing.id } });
+              for (const ghLabel of ghIssue.labels ?? []) {
+                let label = await prisma.label.findFirst({ where: { repositoryId, name: ghLabel.name } });
+                if (!label) {
+                  label = await prisma.label.create({
+                    data: {
+                      githubId: BigInt(ghLabel.id),
+                      name: ghLabel.name,
+                      color: ghLabel.color,
+                      description: ghLabel.description ?? null,
+                      repositoryId,
+                    },
+                  });
+                }
+                await prisma.issueLabel.create({ data: { issueId: existing.id, labelId: label.id } });
+              }
+            }
+          } else if (action === 'deleted') {
+            await prisma.issue.deleteMany({ where: { githubId: BigInt(ghIssue.id) } });
+          }
+          break;
+        }
+
+        // ── Issue Comments ───────────────────────────────────────────────────
+        case 'issue_comment': {
+          const { action, comment: ghComment, issue: ghIssue } = payload;
+          const issue = await prisma.issue.findUnique({ where: { githubId: BigInt(ghIssue.id) } });
+          if (!issue) break;
+
+          if (action === 'created') {
+            const existing = await prisma.comment.findFirst({ where: { githubId: BigInt(ghComment.id) } });
+            if (!existing) {
+              const author = ghComment.user
+                ? await prisma.user.findUnique({ where: { githubId: ghComment.user.id } })
+                : null;
+              await prisma.comment.create({
+                data: {
+                  githubId: BigInt(ghComment.id),
+                  issueId: issue.id,
+                  userId: author?.id ?? null,
+                  body: ghComment.body,
+                  githubCreatedAt: new Date(ghComment.created_at),
+                  githubUpdatedAt: new Date(ghComment.updated_at),
+                },
+              });
+            }
+          } else if (action === 'edited') {
+            await prisma.comment.updateMany({
+              where: { githubId: BigInt(ghComment.id) },
+              data: { body: ghComment.body, githubUpdatedAt: new Date(ghComment.updated_at) },
+            });
+          } else if (action === 'deleted') {
+            await prisma.comment.deleteMany({ where: { githubId: BigInt(ghComment.id) } });
+          }
+          break;
+        }
+
+        // ── Labels ───────────────────────────────────────────────────────────
+        case 'label': {
+          const { action, label: ghLabel } = payload;
+          if (action === 'created') {
+            const existing = await prisma.label.findFirst({ where: { repositoryId, name: ghLabel.name } });
+            if (!existing) {
+              await prisma.label.create({
+                data: {
+                  githubId: BigInt(ghLabel.id),
+                  name: ghLabel.name,
+                  color: ghLabel.color,
+                  description: ghLabel.description ?? null,
+                  repositoryId,
+                },
+              });
+            }
+          } else if (action === 'edited') {
+            await prisma.label.updateMany({
+              where: { repositoryId, OR: [{ githubId: BigInt(ghLabel.id) }, { name: ghLabel.changes?.name?.from ?? ghLabel.name }] },
+              data: { name: ghLabel.name, color: ghLabel.color, description: ghLabel.description ?? null },
+            });
+          } else if (action === 'deleted') {
+            await prisma.label.deleteMany({ where: { repositoryId, githubId: BigInt(ghLabel.id) } });
+          }
+          break;
+        }
+
+        // ── Milestones ───────────────────────────────────────────────────────
+        case 'milestone': {
+          const { action, milestone: ghMilestone } = payload;
+          if (action === 'created') {
+            const existing = await prisma.milestone.findFirst({ where: { repositoryId, githubId: BigInt(ghMilestone.id) } });
+            if (!existing) {
+              await prisma.milestone.create({
+                data: {
+                  githubId: BigInt(ghMilestone.id),
+                  repositoryId,
+                  title: ghMilestone.title,
+                  description: ghMilestone.description ?? null,
+                  state: ghMilestone.state,
+                  dueOn: ghMilestone.due_on ? new Date(ghMilestone.due_on) : null,
+                },
+              });
+            }
+          } else if (action === 'edited' || action === 'closed' || action === 'opened') {
+            await prisma.milestone.updateMany({
+              where: { repositoryId, githubId: BigInt(ghMilestone.id) },
+              data: {
+                title: ghMilestone.title,
+                description: ghMilestone.description ?? null,
+                state: ghMilestone.state,
+                dueOn: ghMilestone.due_on ? new Date(ghMilestone.due_on) : null,
+              },
+            });
+          } else if (action === 'deleted') {
+            await prisma.milestone.deleteMany({ where: { repositoryId, githubId: BigInt(ghMilestone.id) } });
+          }
+          break;
+        }
+
+        default:
+          // Unhandled event type — still return 200 so GitHub doesn't retry
+          break;
+      }
+
+      res.status(200).json({ received: true, event });
+    } catch (error: any) {
+      console.error('Webhook processing error:', error);
+      // Return 200 to prevent GitHub from retrying on internal errors
+      res.status(200).json({ received: true, error: error.message });
     }
   }
 }

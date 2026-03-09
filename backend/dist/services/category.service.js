@@ -9,23 +9,38 @@ class CategoryService {
     // ─────────────────────────────────────────────
     // Get all categories for a user with issue count
     // ─────────────────────────────────────────────
-    async getCategories(userId) {
-        const categories = await prisma_1.default.category.findMany({
-            where: { userId },
-            include: {
-                _count: {
-                    select: { issues: true },
+    async getCategories(userId, page = 1, limit = 20) {
+        const skip = (page - 1) * limit;
+        const where = { userId };
+        const [categories, total] = await Promise.all([
+            prisma_1.default.category.findMany({
+                where,
+                include: {
+                    _count: {
+                        select: { issues: true },
+                    },
                 },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            prisma_1.default.category.count({ where }),
+        ]);
+        return {
+            data: categories.map((cat) => ({
+                id: cat.id,
+                name: cat.name,
+                color: cat.color,
+                issueCount: cat._count.issues,
+                createdAt: cat.createdAt,
+            })),
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
             },
-            orderBy: { createdAt: 'desc' },
-        });
-        return categories.map((cat) => ({
-            id: cat.id,
-            name: cat.name,
-            color: cat.color,
-            issueCount: cat._count.issues,
-            createdAt: cat.createdAt,
-        }));
+        };
     }
     // ─────────────────────────────────────────────
     // Find category by ID (ownership check)

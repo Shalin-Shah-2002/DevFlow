@@ -29,7 +29,7 @@ export const SavedViewsPage = () => {
     setLoading(true);
     try {
       const views = await getSavedViews(state.token);
-      setRows(views);
+      setRows(views.data);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Failed to load saved views.');
     } finally {

@@ -81,7 +81,14 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Body Parser Middleware
-app.use(express.json());
+// Capture raw body for GitHub webhook signature verification
+app.use(
+  express.json({
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware

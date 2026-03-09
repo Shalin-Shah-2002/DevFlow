@@ -9,7 +9,7 @@
  */
 
 import { Router } from 'express';
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
 import {
@@ -29,7 +29,15 @@ router.use(authMiddleware);
  * @desc    Get all categories for authenticated user
  * @access  Private
  */
-router.get('/', getCategories);
+router.get(
+  '/',
+  [
+    query('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer'),
+    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('limit must be between 1 and 100'),
+    validate,
+  ],
+  getCategories
+);
 
 /**
  * @route   POST /api/categories

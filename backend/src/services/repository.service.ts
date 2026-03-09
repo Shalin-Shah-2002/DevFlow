@@ -331,7 +331,7 @@ export class RepositoryService {
 
         if (!existingIssue) {
           // Create new issue
-          await prisma.issue.create({
+          const newIssue = await prisma.issue.create({
             data: {
               githubId: githubIssue.id,
               repositoryId: repository.id,
@@ -349,6 +349,7 @@ export class RepositoryService {
             },
           });
           issuesAdded++;
+          await this.syncIssueLabelLinks(newIssue.id, repository.id, githubIssue.labels || []);
         } else {
           // Update existing issue
           await prisma.issue.update({
@@ -371,6 +372,7 @@ export class RepositoryService {
             }
           }
           issuesUpdated++;
+          await this.syncIssueLabelLinks(existingIssue.id, repository.id, githubIssue.labels || []);
         }
       }
 
@@ -417,6 +419,47 @@ export class RepositoryService {
       }
       
       throw new Error(`Failed to sync repository: ${error.message}`);
+    }
+  }
+
+  /**
+   * Sync label associations for a single issue during bulk sync.
+   * Finds labels by name within the repo (creating them if absent) and
+   * replaces the issue's IssueLabel records.
+   */
+  private static async syncIssueLabelLinks(
+    issueId: string,
+    repositoryId: string,
+    githubLabels: any[]
+  ): Promise<void> {
+    await prisma.issueLabel.deleteMany({ where: { issueId } });
+
+    for (const githubLabel of githubLabels) {
+      let label = await prisma.label.findFirst({
+        where: { repositoryId, name: githubLabel.name },
+      });
+
+      if (!label) {
+        try {
+          label = await prisma.label.create({
+            data: {
+              githubId: BigInt(githubLabel.id),
+              name: githubLabel.name,
+              color: githubLabel.color,
+              description: githubLabel.description ?? null,
+              repositoryId,
+            },
+          });
+        } catch {
+          // If creation fails (e.g. unique constraint) try lookup again
+          label = await prisma.label.findFirst({
+            where: { repositoryId, name: githubLabel.name },
+          });
+          if (!label) continue;
+        }
+      }
+
+      await prisma.issueLabel.create({ data: { issueId, labelId: label.id } });
     }
   }
 

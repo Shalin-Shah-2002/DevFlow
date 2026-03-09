@@ -80,7 +80,11 @@ export const getIssuesList = async (token: string, query: IssuesListQuery): Prom
   if (query.order) params.set('order', query.order);
 
   const suffix = params.toString();
-  return apiGet<IssueListResponse>(`/issues${suffix ? `?${suffix}` : ''}`, token);
+  const endpoint = query.repositoryId && query.repositoryId !== 'all' 
+    ? `/repositories/${query.repositoryId}/issues` 
+    : '/issues';
+    
+  return apiGet<IssueListResponse>(`${endpoint}${suffix ? `?${suffix}` : ''}`, token);
 };
 
 export const createIssue = async (token: string, payload: IssueCreatePayload): Promise<IssueDetailItem> => {

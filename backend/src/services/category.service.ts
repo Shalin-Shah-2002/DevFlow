@@ -5,24 +5,41 @@ export class CategoryService {
   // ─────────────────────────────────────────────
   // Get all categories for a user with issue count
   // ─────────────────────────────────────────────
-  async getCategories(userId: string) {
-    const categories = await prisma.category.findMany({
-      where: { userId },
-      include: {
-        _count: {
-          select: { issues: true },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  async getCategories(userId: string, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
 
-    return categories.map((cat) => ({
-      id: cat.id,
-      name: cat.name,
-      color: cat.color,
-      issueCount: cat._count.issues,
-      createdAt: cat.createdAt,
-    }));
+    const where = { userId };
+
+    const [categories, total] = await Promise.all([
+      prisma.category.findMany({
+        where,
+        include: {
+          _count: {
+            select: { issues: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.category.count({ where }),
+    ]);
+
+    return {
+      data: categories.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        color: cat.color,
+        issueCount: cat._count.issues,
+        createdAt: cat.createdAt,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   // ─────────────────────────────────────────────

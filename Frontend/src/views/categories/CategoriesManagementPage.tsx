@@ -30,7 +30,7 @@ export const CategoriesManagementPage = () => {
     }
 
     const response = await getCategories(state.token);
-    setCategories(response);
+    setCategories(response.data);
   };
 
   useEffect(() => {

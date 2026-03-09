@@ -291,9 +291,9 @@ export class AdditionalService {
   /**
    * Global search across issues and repositories
    */
-  static async globalSearch(userId: string, query: string, limit = 10): Promise<SearchResult> {
+  static async globalSearch(userId: string, query: string, page = 1, limit = 10): Promise<SearchResult> {
     if (!query || query.trim().length === 0) {
-      return { issues: [], repositories: [], totalResults: 0 };
+      return { issues: [], repositories: [], totalResults: 0, pagination: { page, limit, total: 0, totalPages: 0 } };
     }
 
     const searchTerm = query.trim();
@@ -305,15 +305,29 @@ export class AdditionalService {
     });
     const repoIds = userRepos.map((r) => r.repositoryId);
 
-    const [issues, repositories] = await Promise.all([
+    const skip = (page - 1) * limit;
+
+    const issueWhere = {
+      repositoryId: { in: repoIds },
+      OR: [
+        { title: { contains: searchTerm, mode: 'insensitive' as const } },
+        { body: { contains: searchTerm, mode: 'insensitive' as const } },
+      ],
+    };
+
+    const repoWhere = {
+      id: { in: repoIds },
+      OR: [
+        { name: { contains: searchTerm, mode: 'insensitive' as const } },
+        { fullName: { contains: searchTerm, mode: 'insensitive' as const } },
+        { description: { contains: searchTerm, mode: 'insensitive' as const } },
+      ],
+    };
+
+    const [issues, repositories, totalIssues, totalRepos] = await Promise.all([
       prisma.issue.findMany({
-        where: {
-          repositoryId: { in: repoIds },
-          OR: [
-            { title: { contains: searchTerm, mode: 'insensitive' } },
-            { body: { contains: searchTerm, mode: 'insensitive' } },
-          ],
-        },
+        where: issueWhere,
+        skip,
         take: limit,
         orderBy: { githubUpdatedAt: 'desc' },
         select: {
@@ -328,14 +342,8 @@ export class AdditionalService {
         },
       }),
       prisma.repository.findMany({
-        where: {
-          id: { in: repoIds },
-          OR: [
-            { name: { contains: searchTerm, mode: 'insensitive' } },
-            { fullName: { contains: searchTerm, mode: 'insensitive' } },
-            { description: { contains: searchTerm, mode: 'insensitive' } },
-          ],
-        },
+        where: repoWhere,
+        skip,
         take: limit,
         select: {
           id: true,
@@ -345,7 +353,11 @@ export class AdditionalService {
           language: true,
         },
       }),
+      prisma.issue.count({ where: issueWhere }),
+      prisma.repository.count({ where: repoWhere }),
     ]);
+
+    const total = totalIssues + totalRepos;
 
     return {
       issues: issues.map((i) => ({
@@ -365,7 +377,13 @@ export class AdditionalService {
         description: r.description ?? null,
         language: r.language ?? null,
       })),
-      totalResults: issues.length + repositories.length,
+      totalResults: total,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     };
   }
 

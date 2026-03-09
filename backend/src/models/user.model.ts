@@ -49,9 +49,9 @@ export interface JWTPayload {
 export interface GitHubUser {
   id: number;
   login: string;
-  email: string;
-  name: string;
-  avatar_url: string;
+  email: string | null;
+  name: string | null;
+  avatar_url: string | null;
   bio?: string | null;
   location?: string | null;
   company?: string | null;

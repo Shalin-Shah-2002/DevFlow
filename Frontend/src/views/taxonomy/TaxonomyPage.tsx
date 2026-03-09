@@ -17,6 +17,8 @@ export const TaxonomyPage = () => {
   const [activeTab, setActiveTab] = useState<TaxonomyTab>('labels');
   const [labels, setLabels] = useState<LabelItem[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [repositories, setRepositories] = useState<{ id: string; fullName: string }[]>([]);
+  const [labelRepoFilter, setLabelRepoFilter] = useState<string>('all');
   const [defaultRepoId, setDefaultRepoId] = useState('');
   const [loading, setLoading] = useState(true);
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -52,7 +54,8 @@ export const TaxonomyPage = () => {
 
     const repos = repositoriesResponse.data || [];
     setLabels(labelsResponse.labels || []);
-    setCategories(categoriesResponse || []);
+    setCategories(categoriesResponse.data || []);
+    setRepositories(repos.map((repo) => ({ id: repo.id, fullName: repo.fullName })));
 
     if (repos.length > 0 && !defaultRepoId) {
       setDefaultRepoId(repos[0].id);
@@ -77,15 +80,38 @@ export const TaxonomyPage = () => {
     [categories]
   );
 
+  // Deduplicate labels by name when viewing all repos
+  const displayLabels = useMemo(() => {
+    const filtered = labelRepoFilter === 'all'
+      ? labels
+      : labels.filter((l) => l.repositoryId === labelRepoFilter);
+
+    if (labelRepoFilter !== 'all') return filtered;
+
+    const map = new Map<string, LabelItem & { repoCount: number }>();
+    for (const label of filtered) {
+      const key = label.name.toLowerCase();
+      const existing = map.get(key);
+      if (existing) {
+        existing.issueCount += label.issueCount;
+        (existing as any).repoCount += 1;
+      } else {
+        map.set(key, { ...label, repoCount: 1 });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [labels, labelRepoFilter]);
+
   const handleSyncLabels = async () => {
-    if (!state.token || !defaultRepoId) {
-      setMessage('No repository available to sync labels.');
+    const repoToSync = labelRepoFilter !== 'all' ? labelRepoFilter : defaultRepoId;
+    if (!state.token || !repoToSync) {
+      setMessage('Please select a repository to sync labels for.');
       return;
     }
 
     setBusyKey('sync');
     try {
-      const result = await syncLabels(state.token, defaultRepoId);
+      const result = await syncLabels(state.token, repoToSync);
       setMessage(result.message || 'Labels synced successfully.');
       await loadData();
     } catch (error) {
@@ -269,6 +295,15 @@ export const TaxonomyPage = () => {
 
           {activeTab === 'labels' && (
             <div className="taxonomy-actions">
+              <select
+                value={labelRepoFilter}
+                onChange={(event) => setLabelRepoFilter(event.target.value)}
+              >
+                <option value="all">All Repositories</option>
+                {repositories.map((repo) => (
+                  <option key={repo.id} value={repo.id}>{repo.fullName}</option>
+                ))}
+              </select>
               <button type="button" className="secondary" disabled={busyKey === 'sync'} onClick={() => void handleSyncLabels()}>
                 {busyKey === 'sync' ? 'Syncing…' : 'Sync from GitHub'}
               </button>
@@ -303,7 +338,7 @@ export const TaxonomyPage = () => {
 
           {!loading && activeTab === 'labels' && (
             <>
-              {labels.length === 0 ? (
+              {displayLabels.length === 0 ? (
                 <div className="taxonomy-info">No labels found.</div>
               ) : (
                 <table className="taxonomy-table">
@@ -316,42 +351,65 @@ export const TaxonomyPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {labels.map((label) => (
-                      <tr key={label.id}>
-                        <td>
-                          <span className="taxonomy-label-chip" style={{ backgroundColor: `#${label.color}` }}>
-                            {label.name}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="taxonomy-color-meta">
-                            <span className="taxonomy-color-dot" style={{ backgroundColor: `#${label.color}` }} />
-                            #{label.color.toUpperCase()}
-                          </span>
-                        </td>
-                        <td>{label.issueCount} issues</td>
-                        <td>
-                          <div className="taxonomy-row-actions">
-                            <button
-                              type="button"
-                              className="icon"
-                              disabled={busyKey === `edit-label-${label.id}`}
-                              onClick={() => void handleEditLabel(label)}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              className="icon danger"
-                              disabled={busyKey === `delete-label-${label.id}`}
-                              onClick={() => void handleDeleteLabel(label.id)}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    {displayLabels.map((label) => {
+                      const isGrouped = labelRepoFilter === 'all' && (label as any).repoCount > 1;
+                      return (
+                        <tr key={label.id}>
+                          <td>
+                            <span className="taxonomy-label-chip" style={{ backgroundColor: `#${label.color}` }}>
+                              {label.name}
+                            </span>
+                            {isGrouped && (
+                              <span className="label-repo-badge" style={{ marginLeft: 8 }}>
+                                {(label as any).repoCount} repos
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <span className="taxonomy-color-meta">
+                              <span className="taxonomy-color-dot" style={{ backgroundColor: `#${label.color}` }} />
+                              #{label.color.toUpperCase()}
+                            </span>
+                          </td>
+                          <td>{label.issueCount} issues</td>
+                          <td>
+                            {!isGrouped ? (
+                              <div className="taxonomy-row-actions">
+                                <button
+                                  type="button"
+                                  className="icon"
+                                  disabled={busyKey === `edit-label-${label.id}`}
+                                  onClick={() => void handleEditLabel(label)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="icon danger"
+                                  disabled={busyKey === `delete-label-${label.id}`}
+                                  onClick={() => void handleDeleteLabel(label.id)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                className="icon"
+                                onClick={() => {
+                                  const match = repositories.find((r) =>
+                                    labels.some((l) => l.name.toLowerCase() === label.name.toLowerCase() && l.repositoryId === r.id)
+                                  );
+                                  if (match) setLabelRepoFilter(match.id);
+                                }}
+                              >
+                                Filter to edit
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}

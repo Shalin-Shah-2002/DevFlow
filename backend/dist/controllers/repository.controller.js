@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RepositoryController = void 0;
 const repository_service_1 = require("../services/repository.service");
+const issue_service_1 = require("../services/issue.service");
 /**
  * @swagger
  * tags:
@@ -94,6 +95,93 @@ class RepositoryController {
             res.status(500).json({
                 success: false,
                 error: error.message || 'Failed to fetch repositories',
+            });
+        }
+    }
+    /**
+     * @swagger
+     * /api/repositories/{id}/issues:
+     *   get:
+     *     summary: List issues for a repository
+     *     description: Get paginated issues for one repository with optional filters
+     *     tags: [Repositories]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Repository ID
+     *       - in: query
+     *         name: state
+     *         schema:
+     *           type: string
+     *           enum: [open, closed, all]
+     *       - in: query
+     *         name: search
+     *         schema:
+     *           type: string
+     *       - in: query
+     *         name: page
+     *         schema:
+     *           type: integer
+     *           default: 1
+     *       - in: query
+     *         name: limit
+     *         schema:
+     *           type: integer
+     *           default: 20
+     *       - in: query
+     *         name: sort
+     *         schema:
+     *           type: string
+     *           enum: [created, updated, priority, comments]
+     *       - in: query
+     *         name: order
+     *         schema:
+     *           type: string
+     *           enum: [asc, desc]
+     *     responses:
+     *       200:
+     *         description: Repository issues list
+     *       401:
+     *         description: Unauthorized
+     */
+    static async getRepositoryIssues(req, res) {
+        try {
+            const user = req.user;
+            if (!user) {
+                res.status(401).json({ success: false, error: 'Unauthorized' });
+                return;
+            }
+            const { id } = req.params;
+            if (typeof id !== 'string' || !id) {
+                res.status(400).json({ success: false, error: 'Invalid repository ID' });
+                return;
+            }
+            const { state, priority, label, assignee, search, category, milestone, page, limit, sort, order } = req.query;
+            const result = await issue_service_1.IssueService.getIssues(user.id, {
+                repositoryId: id,
+                state: state,
+                priority: typeof priority === 'string' ? priority.split(',') : undefined,
+                label: typeof label === 'string' ? label.split(',') : undefined,
+                assignee: assignee,
+                search: search,
+                categoryId: category,
+                milestoneId: milestone,
+                page: page ? parseInt(page, 10) : 1,
+                limit: limit ? parseInt(limit, 10) : 20,
+                sort: sort,
+                order: order,
+            });
+            res.status(200).json(result);
+        }
+        catch (error) {
+            res.status(500).json({
+                success: false,
+                error: error.message || 'Failed to fetch repository issues',
             });
         }
     }

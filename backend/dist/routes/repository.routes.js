@@ -19,6 +19,12 @@ router.get('/', repository_controller_1.RepositoryController.getRepositories);
  */
 router.post('/', repository_controller_1.RepositoryController.addRepository);
 /**
+ * @route   GET /api/repositories/:id/issues
+ * @desc    List repository issues
+ * @access  Private
+ */
+router.get('/:id/issues', repository_controller_1.RepositoryController.getRepositoryIssues);
+/**
  * @route   GET /api/repositories/:id
  * @desc    Get repository details
  * @access  Private

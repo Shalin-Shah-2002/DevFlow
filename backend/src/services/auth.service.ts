@@ -10,6 +10,16 @@ import {
 } from '../models';
 
 export class AuthService {
+  private static resolveUserEmail(githubUser: GitHubUser): string {
+    const rawEmail = githubUser.email?.trim();
+    if (rawEmail) {
+      return rawEmail.toLowerCase();
+    }
+
+    // GitHub may not return a public/verified email; use a deterministic fallback.
+    return `${githubUser.login.toLowerCase()}@users.noreply.github.com`;
+  }
+
   /**
    * Generate GitHub OAuth URL
    */
@@ -110,11 +120,12 @@ export class AuthService {
 
       // Convert GitHub user ID to BigInt for Prisma
       const githubIdBigInt = BigInt(githubUser.id);
+      const resolvedEmail = AuthService.resolveUserEmail(githubUser);
 
       const user = await prisma.user.upsert({
         where: { githubId: githubIdBigInt },
         update: {
-          email: githubUser.email,
+          email: resolvedEmail,
           name: githubUser.name,
           avatar: githubUser.avatar_url,
           githubLogin: githubUser.login,
@@ -123,7 +134,7 @@ export class AuthService {
         },
         create: {
           githubId: githubIdBigInt,
-          email: githubUser.email,
+          email: resolvedEmail,
           name: githubUser.name,
           avatar: githubUser.avatar_url,
           githubLogin: githubUser.login,
@@ -135,7 +146,7 @@ export class AuthService {
       return user;
     } catch (error) {
       console.error('Error creating/updating user:', error);
-      throw new Error('Failed to create or update user');
+      throw new Error(error instanceof Error ? `Failed to create or update user: ${error.message}` : 'Failed to create or update user');
     }
   }
 

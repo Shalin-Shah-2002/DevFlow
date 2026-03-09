@@ -153,6 +153,19 @@ class ViewsController {
      *       - Views
      *     security:
      *       - bearerAuth: []
+     *     parameters:
+     *       - in: query
+     *         name: page
+     *         schema:
+     *           type: integer
+     *           default: 1
+     *         description: Page number
+     *       - in: query
+     *         name: limit
+     *         schema:
+     *           type: integer
+     *           default: 20
+     *         description: Items per page (max 100)
      *     responses:
      *       200:
      *         description: List of saved views retrieved successfully
@@ -168,6 +181,17 @@ class ViewsController {
      *                   type: array
      *                   items:
      *                     $ref: '#/components/schemas/SavedView'
+     *                 pagination:
+     *                   type: object
+     *                   properties:
+     *                     page:
+     *                       type: integer
+     *                     limit:
+     *                       type: integer
+     *                     total:
+     *                       type: integer
+     *                     totalPages:
+     *                       type: integer
      *       401:
      *         description: Unauthorized – missing or invalid JWT token
      *         content:
@@ -185,10 +209,12 @@ class ViewsController {
     async getViews(req, res) {
         try {
             const userId = req.user.id;
-            const views = await viewsService.getViews(userId);
+            const page = req.query.page ? parseInt(req.query.page) : 1;
+            const limit = req.query.limit ? parseInt(req.query.limit) : 20;
+            const result = await viewsService.getViews(userId, page, limit);
             res.status(200).json({
                 success: true,
-                data: views,
+                ...result,
             });
         }
         catch (error) {
