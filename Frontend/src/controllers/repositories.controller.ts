@@ -139,3 +139,8 @@ export const setupRepositoryOverviewWebhook = async (
 export const deleteRepositoryFromOverview = async (token: string, repositoryId: string): Promise<void> => {
   await apiRequest<{ success: boolean }>(token, `/repositories/${repositoryId}`, 'DELETE');
 };
+
+export const getRepositoryGroups = async (token: string): Promise<string[]> => {
+  const response = await apiRequest<{ success: boolean; groups: string[] }>(token, '/repositories/groups', 'GET');
+  return response.groups;
+};

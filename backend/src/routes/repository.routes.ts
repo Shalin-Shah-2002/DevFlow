@@ -15,6 +15,13 @@ router.use(authMiddleware);
 router.get('/', RepositoryController.getRepositories);
 
 /**
+ * @route   GET /api/repositories/groups
+ * @desc    List all distinct groups for user repositories
+ * @access  Private
+ */
+router.get('/groups', RepositoryController.getGroups);
+
+/**
  * @route   POST /api/repositories
  * @desc    Add new repository
  * @access  Private

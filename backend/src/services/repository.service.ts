@@ -76,6 +76,21 @@ export class RepositoryService {
   }
 
   /**
+   * Get all distinct groups for a user
+   */
+  static async getGroups(userId: string): Promise<string[]> {
+    const rows = await prisma.userRepository.findMany({
+      where: { userId },
+      select: { group: true },
+      distinct: ['group'],
+    });
+    return rows
+      .map((r) => r.group)
+      .filter((g): g is string => !!g)
+      .sort();
+  }
+
+  /**
    * Get repository by ID
    */
   static async getRepositoryById(repositoryId: string, userId: string) {

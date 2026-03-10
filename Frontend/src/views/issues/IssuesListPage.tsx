@@ -8,6 +8,9 @@ import { useAuth } from '../auth/useAuth';
 import { DashboardSidebar } from '../dashboard/components/DashboardSidebar';
 import { getRepositoriesOverview } from '../../controllers/repositories.controller';
 import type { RepositoryItem } from '../../models/repositories.model';
+import { getLabels } from '../../controllers/labels.controller';
+import { getCategories } from '../../controllers/categories.controller';
+import type { CategoryItem } from '../../models/categories.model';
 
 const PAGE_SIZE = 6;
 
@@ -25,7 +28,12 @@ export const IssuesListPage = () => {
   const [search, setSearch] = useState('');
   const [filterState, setFilterState] = useState<'all' | 'open' | 'closed'>('all');
   const [filterRepository, setFilterRepository] = useState<string>('all');
+  const [filterGroup, setFilterGroup] = useState<string>('');
   const [sortBy, setSortBy] = useState<'created' | 'updated' | 'priority' | 'comments'>('updated');
+  const [filterLabel, setFilterLabel] = useState<string>('');
+  const [filterCategory, setFilterCategory] = useState<string>('');
+  const [availableLabels, setAvailableLabels] = useState<{ name: string; color: string }[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<CategoryItem[]>([]);
   const [createRepositoryId, setCreateRepositoryId] = useState('');
   const [createTitle, setCreateTitle] = useState('');
   const [createBody, setCreateBody] = useState('');
@@ -46,7 +54,9 @@ export const IssuesListPage = () => {
       search,
       sort: sortBy,
       order: 'desc',
-      repositoryId: filterRepository
+      repositoryId: filterRepository,
+      label: filterLabel || undefined,
+      category: filterCategory || undefined
     })
       .then((response) => {
         setError(null);
@@ -58,7 +68,15 @@ export const IssuesListPage = () => {
         setError('Failed to load issues.');
       })
       .finally(() => setLoading(false));
-  }, [state.token, filterState, search, sortBy, currentPage, filterRepository]);
+  }, [state.token, filterState, search, sortBy, currentPage, filterRepository, filterLabel, filterCategory]);
+
+  // Load categories once on mount
+  useEffect(() => {
+    if (!state.token) return;
+    getCategories(state.token, 1, 100)
+      .then((res) => setAvailableCategories(res.data || []))
+      .catch(() => setAvailableCategories([]));
+  }, [state.token]);
 
   useEffect(() => {
     if (!state.token) {
@@ -74,6 +92,37 @@ export const IssuesListPage = () => {
         setCreateMessage('Unable to load repositories for issue creation.');
       });
   }, [state.token]);
+
+  // Reload available labels whenever the selected repository changes
+  useEffect(() => {
+    if (!state.token) return;
+    setFilterLabel('');
+    const query =
+      filterRepository !== 'all'
+        ? { repositoryId: filterRepository, pageSize: 200 }
+        : { pageSize: 200 };
+    getLabels(state.token, query)
+      .then((res) => {
+        const seen = new Set<string>();
+        const unique = (res.labels || []).filter((l) => {
+          if (seen.has(l.name)) return false;
+          seen.add(l.name);
+          return true;
+        });
+        setAvailableLabels(unique.map((l) => ({ name: l.name, color: l.color })));
+      })
+      .catch(() => setAvailableLabels([]));
+  }, [state.token, filterRepository]);
+
+  // When group changes, reset repo selection if it no longer belongs to the group
+  useEffect(() => {
+    if (!filterGroup) return;
+    const inGroup = repositories.some((r) => r.id === filterRepository && r.group === filterGroup);
+    if (!inGroup) {
+      setFilterRepository('all');
+      setCurrentPage(1);
+    }
+  }, [filterGroup, repositories, filterRepository]);
 
   useEffect(() => {
     const shouldOpen = searchParams.get('new') === '1';
@@ -144,10 +193,30 @@ export const IssuesListPage = () => {
   const clearFilters = () => {
     setFilterState('all');
     setFilterRepository('all');
+    setFilterGroup('');
     setSortBy('updated');
     setSearch('');
+    setFilterLabel('');
+    setFilterCategory('');
     setCurrentPage(1);
   };
+
+  const availableGroups = useMemo(() => {
+    const seen = new Set<string>();
+    const groups: string[] = [];
+    for (const repo of repositories) {
+      if (repo.group && !seen.has(repo.group)) {
+        seen.add(repo.group);
+        groups.push(repo.group);
+      }
+    }
+    return groups;
+  }, [repositories]);
+
+  const filteredRepoOptions = useMemo(
+    () => (filterGroup ? repositories.filter((r) => r.group === filterGroup) : repositories),
+    [repositories, filterGroup]
+  );
 
   const rangeStart = totalIssues === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(currentPage * PAGE_SIZE, totalIssues);
@@ -182,90 +251,109 @@ export const IssuesListPage = () => {
         </header>
 
         <section className="issues-filter-card">
-          <div className="issues-filter-top">
-            <label className="issues-search-input">
-              <span>🔎</span>
-              <input
-                value={search}
-                onChange={(event) => {
-                  setSearch(event.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="Search issues, labels, authors..."
-              />
-            </label>
+          <label className="issues-search-input">
+            <span>🔎</span>
+            <input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search issues, labels, authors..."
+            />
+          </label>
 
-            <div className="issues-sort-wrap">
-              <span>Repository</span>
-              <select
-                value={filterRepository}
-                onChange={(event) => {
-                  setFilterRepository(event.target.value);
-                  setCurrentPage(1);
-                }}
-              >
-                <option value="all">All Repositories</option>
-                {repositories.map((repo) => (
-                  <option key={repo.id} value={repo.id}>
-                    {repo.name}
-                  </option>
-                ))}
-              </select>
+          <div className="issues-filter-controls">
+            <div className="issues-state-tabs">
+              <button
+                type="button"
+                className={filterState === 'all' ? 'active' : ''}
+                onClick={() => { setFilterState('all'); setCurrentPage(1); }}
+              >All</button>
+              <button
+                type="button"
+                className={filterState === 'open' ? 'active' : ''}
+                onClick={() => { setFilterState('open'); setCurrentPage(1); }}
+              >Open</button>
+              <button
+                type="button"
+                className={filterState === 'closed' ? 'active' : ''}
+                onClick={() => { setFilterState('closed'); setCurrentPage(1); }}
+              >Closed</button>
             </div>
 
-            <div className="issues-sort-wrap">
-              <span>Sort by</span>
-              <select
-                value={sortBy}
-                onChange={(event) => {
-                  setSortBy(event.target.value as typeof sortBy);
-                  setCurrentPage(1);
-                }}
-              >
-                <option value="updated">Updated</option>
-                <option value="created">Created</option>
-                <option value="priority">Priority</option>
-                <option value="comments">Comments</option>
-              </select>
+            <div className="issues-filter-dropdowns">
+              {availableGroups.length > 0 && (
+                <div className="issues-sort-wrap">
+                  <span>Group</span>
+                  <select
+                    value={filterGroup}
+                    onChange={(event) => { setFilterGroup(event.target.value); setCurrentPage(1); }}
+                  >
+                    <option value="">All</option>
+                    {availableGroups.map((g) => (
+                      <option key={g} value={g}>{g}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="issues-sort-wrap">
+                <span>Repo</span>
+                <select
+                  value={filterRepository}
+                  onChange={(event) => { setFilterRepository(event.target.value); setCurrentPage(1); }}
+                >
+                  <option value="all">All</option>
+                  {filteredRepoOptions.map((repo) => (
+                    <option key={repo.id} value={repo.id}>{repo.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="issues-sort-wrap">
+                <span>Label</span>
+                <select
+                  value={filterLabel}
+                  onChange={(event) => { setFilterLabel(event.target.value); setCurrentPage(1); }}
+                >
+                  <option value="">All</option>
+                  {availableLabels.map((label) => (
+                    <option key={label.name} value={label.name}>{label.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="issues-sort-wrap">
+                <span>Category</span>
+                <select
+                  value={filterCategory}
+                  onChange={(event) => { setFilterCategory(event.target.value); setCurrentPage(1); }}
+                >
+                  <option value="">All</option>
+                  {availableCategories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="issues-sort-wrap">
+                <span>Sort</span>
+                <select
+                  value={sortBy}
+                  onChange={(event) => { setSortBy(event.target.value as typeof sortBy); setCurrentPage(1); }}
+                >
+                  <option value="updated">Updated</option>
+                  <option value="created">Created</option>
+                  <option value="priority">Priority</option>
+                  <option value="comments">Comments</option>
+                </select>
+              </div>
+
+              <button type="button" className="issues-clear-btn" onClick={clearFilters}>
+                Clear
+              </button>
             </div>
-          </div>
-
-          <div className="issues-filter-bottom">
-            <button
-              type="button"
-              className={filterState === 'all' ? 'active' : ''}
-              onClick={() => {
-                setFilterState('all');
-                setCurrentPage(1);
-              }}
-            >
-              All
-            </button>
-            <button
-              type="button"
-              className={filterState === 'open' ? 'active' : ''}
-              onClick={() => {
-                setFilterState('open');
-                setCurrentPage(1);
-              }}
-            >
-              Open
-            </button>
-            <button
-              type="button"
-              className={filterState === 'closed' ? 'active' : ''}
-              onClick={() => {
-                setFilterState('closed');
-                setCurrentPage(1);
-              }}
-            >
-              Closed
-            </button>
-
-            <span className="divider" />
-            <button type="button" className="clear" onClick={clearFilters}>
-              Clear filters
-            </button>
           </div>
         </section>
 

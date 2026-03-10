@@ -102,6 +102,49 @@ export class RepositoryController {
 
   /**
    * @swagger
+   * /api/repositories/groups:
+   *   get:
+   *     summary: List all repository groups for the user
+   *     tags: [Repositories]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Distinct group names
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 groups:
+   *                   type: array
+   *                   items:
+   *                     type: string
+   *       401:
+   *         description: Unauthorized
+   */
+  static async getGroups(req: Request, res: Response): Promise<void> {
+    try {
+      const user = req.user as { id: string } | undefined;
+      if (!user) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+      const groups = await RepositoryService.getGroups(user.id);
+      res.status(200).json({ success: true, groups });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to fetch groups',
+      });
+    }
+  }
+
+  /**
+   * @swagger
    * /api/repositories/{id}/issues:
    *   get:
    *     summary: List issues for a repository

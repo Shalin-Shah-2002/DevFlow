@@ -78,6 +78,8 @@ export const getIssuesList = async (token: string, query: IssuesListQuery): Prom
   if (query.search) params.set('search', query.search);
   if (query.sort) params.set('sort', query.sort);
   if (query.order) params.set('order', query.order);
+  if (query.label) params.set('label', query.label);
+  if (query.category) params.set('category', query.category);
 
   const suffix = params.toString();
   const endpoint = query.repositoryId && query.repositoryId !== 'all' 
